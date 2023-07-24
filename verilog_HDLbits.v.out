@@ -1,0 +1,69 @@
+#! /c/Source/iverilog-install/bin/vvp
+:ivl_version "12.0 (devel)" "(s20150603-1539-g2693dd32b)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision - 9;
+:vpi_module "D:\iverilog\lib\ivl\system.vpi";
+:vpi_module "D:\iverilog\lib\ivl\vhdl_sys.vpi";
+:vpi_module "D:\iverilog\lib\ivl\vhdl_textio.vpi";
+:vpi_module "D:\iverilog\lib\ivl\v2005_math.vpi";
+:vpi_module "D:\iverilog\lib\ivl\va_math.vpi";
+S_000001eda37a2e10 .scope module, "function_mod" "function_mod" 2 2904;
+ .timescale -9 -9;
+    .port_info 0 /INPUT 4 "a";
+    .port_info 1 /INPUT 4 "b";
+    .port_info 2 /OUTPUT 4 "c";
+    .port_info 3 /OUTPUT 4 "d";
+o000001eda37d7068 .functor BUFZ 4, C4<zzzz>; HiZ drive
+v000001eda38bbb60_0 .net "a", 3 0, o000001eda37d7068;  0 drivers
+o000001eda37d7098 .functor BUFZ 4, C4<zzzz>; HiZ drive
+v000001eda38bbc00_0 .net "b", 3 0, o000001eda37d7098;  0 drivers
+o000001eda37d70c8 .functor BUFZ 4, C4<zzzz>; HiZ drive
+v000001eda38bbca0_0 .net "c", 3 0, o000001eda37d70c8;  0 drivers
+o000001eda37d70f8 .functor BUFZ 4, C4<zzzz>; HiZ drive
+v000001eda38bbd40_0 .net "d", 3 0, o000001eda37d70f8;  0 drivers
+v000001eda37d4060_0 .var "x", 3 0;
+v000001eda37d4100_0 .var "y", 3 0;
+S_000001eda37a2fa0 .scope function.vec4.s4, "endian" "endian" 2 2914, 2 2914 0, S_000001eda37a2e10;
+ .timescale -9 -9;
+v000001eda37a34f0_0 .var "In", 3 0;
+; Variable endian is vec4 return value of scope S_000001eda37a2fa0
+v000001eda38bbac0_0 .var "i", 2 0;
+TD_function_mod.endian ;
+    %pushi/vec4 0, 0, 3;
+    %store/vec4 v000001eda38bbac0_0, 0, 3;
+T_0.0 ;
+    %load/vec4 v000001eda38bbac0_0;
+    %pad/u 32;
+    %cmpi/u 3, 0, 32;
+    %flag_or 5, 4;
+    %jmp/0xz T_0.1, 5;
+    %load/vec4 v000001eda37a34f0_0;
+    %pushi/vec4 3, 0, 32;
+    %load/vec4 v000001eda38bbac0_0;
+    %pad/u 32;
+    %sub;
+    %part/u 1;
+    %ix/getv 4, v000001eda38bbac0_0;
+    %ret/vec4 0, 4, 1; Assign to endian (store_vec4_to_lval)
+    %load/vec4 v000001eda38bbac0_0;
+    %addi 1, 0, 3;
+    %store/vec4 v000001eda38bbac0_0, 0, 3;
+    %jmp T_0.0;
+T_0.1 ;
+    %end;
+    .scope S_000001eda37a2e10;
+T_1 ;
+    %pushi/vec4 5, 0, 4;
+    %store/vec4 v000001eda37d4060_0, 0, 4;
+    %load/vec4 v000001eda37d4060_0;
+    %store/vec4 v000001eda37a34f0_0, 0, 4;
+    %callf/vec4 TD_function_mod.endian, S_000001eda37a2fa0;
+    %store/vec4 v000001eda37d4100_0, 0, 4;
+    %vpi_call 2 2927 "$display", "y= %d", v000001eda37d4100_0 {0 0 0};
+    %end;
+    .thread T_1;
+# The file index is used to find the file name in the following table.
+:file_names 3;
+    "N/A";
+    "<interactive>";
+    "verilog_HDLbits.v";
