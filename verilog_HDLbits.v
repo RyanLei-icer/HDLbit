@@ -2975,3 +2975,81 @@
 
 // 	assign CO = C[4];
 // endmodule
+
+// // VL13 优先编码器电路1
+// `timescale 1ns/1ns
+
+// module encoder_0(
+//    input      [8:0]         I_n   ,
+
+//    output reg [3:0]         Y_n   
+// );
+
+// always@(*)begin
+//     casex(I_n)
+//         9'b1_1111_1111:Y_n = 4'b1111;//1
+//         9'b0_xxxx_xxxx:Y_n = 4'b0110;//2
+//         9'b1_0xxx_xxxx:Y_n = 4'b0111;//3
+//         9'b1_10xx_xxxx:Y_n = 4'b1000;//4
+//         9'b1_110x_xxxx:Y_n = 4'b1001;//5
+//         9'b1_1110_xxxx:Y_n = 4'b1010;//6
+//         9'b1_1111_0xxx:Y_n = 4'b1011;//7
+//         9'b1_1111_10xx:Y_n = 4'b1100;//8
+//         9'b1_1111_110x:Y_n = 4'b1101;//9
+//         9'b1_1111_1110:Y_n = 4'b1110;//10
+//     endcase
+// end
+
+// endmodule
+
+// // VL14 用优先编码器1实现键盘编码电路
+// // 描述
+// // 请使用优先编码器1实现键盘编码电路，可添加并例化题目中已给出的优先编码器代码。
+// // 10个按键分别对应十进制数0-9，按键9的优先级别最高；按键悬空时，按键输出高电平，
+// // 按键按下时，按键输出低电平；键盘编码电路的输出是8421BCD码。
+// // 要求：键盘编码电路要有工作状态标志，以区分没有按键按下和按键0按下两种情况。
+// `timescale 1ns/1ns
+// module encoder_0(
+//     input      [8:0]         I_n   ,
+    
+//     output reg [3:0]         Y_n   
+// );
+
+// always @(*)begin
+//     casex(I_n)
+//         9'b111111111 : Y_n = 4'b1111;
+//         9'b0xxxxxxxx : Y_n = 4'b0110;
+//         9'b10xxxxxxx : Y_n = 4'b0111;
+//         9'b110xxxxxx : Y_n = 4'b1000;
+//         9'b1110xxxxx : Y_n = 4'b1001;
+//         9'b11110xxxx : Y_n = 4'b1010;
+//         9'b111110xxx : Y_n = 4'b1011;
+//         9'b1111110xx : Y_n = 4'b1100;
+//         9'b11111110x : Y_n = 4'b1101;
+//         9'b111111110 : Y_n = 4'b1110;
+//         default      : Y_n = 4'b1111;
+//     endcase    
+// end 
+
+// endmodule
+
+// module key_encoder(
+//     input      [9:0]         S_n   ,         
+    
+//     output wire[3:0]         L     ,
+//     output wire              GS
+// );
+
+// wire    [3:0]   T;
+
+// encoder_0 u1(
+//             .I_n(S_n[9:1]),
+//             .Y_n(T)
+// );
+
+// assign L  = ~T;
+// assign GS = (T==4'b1111) ? (S_n[0] ? 0 : 1) : 1;
+
+// endmodule
+
+
