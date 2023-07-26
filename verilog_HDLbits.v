@@ -3052,4 +3052,205 @@
 
 // endmodule
 
+// // VL15 优先编码器Ⅰ
+// // 下表是8线-3线优先编码器Ⅰ的功能表。请根据该功能表，用Verilog实现该优先编码器Ⅰ。
+// `timescale 1ns/1ns
+
+// module encoder_83(
+//     input      [7:0]       I   ,
+//     input                  EI  ,
+    
+//     output wire [2:0]      Y   ,
+//     output wire            GS  ,
+//     output wire            EO    
+// );
+
+// reg [4:0]   T; //T={Y,GS,EO}
+
+// always@(*)begin
+//     if(!EI)begin
+//         T = 5'b0;
+//     end
+//     else begin
+//         casex(I)
+//             8'b0000_0000: T = 5'b0_0001;
+//             8'b1xxx_xxxx: T = 5'b1_1110;
+//             8'b01xx_xxxx: T = 5'b1_1010;
+//             8'b001x_xxxx: T = 5'b1_0110;
+//             8'b0001_xxxx: T = 5'b1_0010;
+//             8'b0000_1xxx: T = 5'b0_1110;
+//             8'b0000_01xx: T = 5'b0_1010;
+//             8'b0000_001x: T = 5'b0_0110;
+//             8'b0000_0001: T = 5'b0_0010;
+//         endcase
+//     end
+// end
+
+// assign {Y,GS,EO} = T;
+
+// endmodule
+
+// // VL16 使用8线-3线优先编码器Ⅰ实现16线-4线优先编码器
+// // 请使用2片该优先编码器Ⅰ及必要的逻辑电路实现16线-4线优先编码器。优先编码器Ⅰ的真值表和代码已给出。
+// // 可将优先编码器Ⅰ的代码添加到本题答案中，并例化。
+// `timescale 1ns/1ns
+// module encoder_83(
+//     input      [7:0]       I   ,
+//     input                  EI  ,
+    
+//     output wire [2:0]      Y   ,
+//     output wire            GS  ,
+//     output wire            EO    
+// );
+// assign Y[2] = EI & (I[7] | I[6] | I[5] | I[4]);
+// assign Y[1] = EI & (I[7] | I[6] | ~I[5]&~I[4]&I[3] | ~I[5]&~I[4]&I[2]);
+// assign Y[0] = EI & (I[7] | ~I[6]&I[5] | ~I[6]&~I[4]&I[3] | ~I[6]&~I[4]&~I[2]&I[1]);
+
+// assign EO = EI&~I[7]&~I[6]&~I[5]&~I[4]&~I[3]&~I[2]&~I[1]&~I[0];
+
+// assign GS = EI&(I[7] | I[6] | I[5] | I[4] | I[3] | I[2] | I[1] | I[0]);
+// //assign GS = EI&(| I);
+
+// endmodule
+
+// module encoder_164(
+//     input      [15:0]      A   ,
+//     input                  EI  ,
+    
+//     output wire [3:0]      L   ,
+//     output wire            GS  ,
+//     output wire            EO    
+// );
+
+// wire GSH,GSL,EOH;
+// wire [2:0]  Y_H,Y_L;
+
+// encoder_83 U_H(
+//     .I  (A[15:8]),
+//     .EI (EI),
+//     .Y  (Y_H),
+//     .GS (GSH),
+//     .EO (EOH)
+// );
+
+// encoder_83 U_L(
+//     .I  (A[7:0]),
+//     .EI (EOH),
+//     .Y  (Y_L),
+//     .GS (GSL),
+//     .EO (EO)
+// );
+
+// assign L = EI ? (EOH ? {1'b0,Y_L} :{1'b1,Y_H}) : 0;
+// assign GS= GSH | GSL;
+
+// endmodule
+
+// // VL17 用3-8译码器实现全减器
+// // 描述
+// // 请使用3-8译码器和必要的逻辑门实现全减器，全减器接口图如下，A是被减数，
+// // B是减数，Ci是来自低位的借位，D是差，Co是向高位的借位。
+// `timescale 1ns/1ns
+
+// module decoder_38(
+//     input             E      ,
+//     input             A0     ,
+//     input             A1     ,
+//     input             A2     ,
+    
+//     output reg       Y0n    ,  
+//     output reg       Y1n    , 
+//     output reg       Y2n    , 
+//     output reg       Y3n    , 
+//     output reg       Y4n    , 
+//     output reg       Y5n    , 
+//     output reg       Y6n    , 
+//     output reg       Y7n    
+// );
+
+// always @(*)begin
+//     if(!E)begin
+//         Y0n = 1'b1;
+//         Y1n = 1'b1;
+//         Y2n = 1'b1;
+//         Y3n = 1'b1;
+//         Y4n = 1'b1;
+//         Y5n = 1'b1;
+//         Y6n = 1'b1;
+//         Y7n = 1'b1;
+//     end  
+//     else begin
+//         case({A2,A1,A0})
+//             3'b000 : begin
+//                         Y0n = 1'b0; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b1; 
+//                         Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b1;
+//                     end 
+//             3'b001 : begin
+//                         Y0n = 1'b1; Y1n = 1'b0; Y2n = 1'b1; Y3n = 1'b1; 
+//                         Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b1;
+//                     end 
+//             3'b010 : begin
+//                         Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b0; Y3n = 1'b1; 
+//                         Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b1;
+//                     end 
+//             3'b011 : begin
+//                         Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b0; 
+//                         Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b1;
+//                     end 
+//             3'b100 : begin
+//                         Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b1; 
+//                         Y4n = 1'b0; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b1;
+//                     end 
+//             3'b101 : begin
+//                         Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b1; 
+//                         Y4n = 1'b1; Y5n = 1'b0; Y6n = 1'b1; Y7n = 1'b1;
+//                     end 
+//             3'b110 : begin
+//                         Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b1; 
+//                         Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b0; Y7n = 1'b1;
+//                     end 
+//             3'b111 : begin
+//                         Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b1; 
+//                         Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b0;
+//                     end 
+//             default: begin
+//                         Y0n = 1'b1; Y1n = 1'b1; Y2n = 1'b1; Y3n = 1'b1; 
+//                         Y4n = 1'b1; Y5n = 1'b1; Y6n = 1'b1; Y7n = 1'b1;
+//                     end
+//         endcase  
+//     end 
+// end    
+
+// endmodule
+
+// module decoder1(
+//     input             A     ,
+//     input             B     ,
+//     input             Ci    ,
+    
+//     output wire       D     ,
+//     output wire       Co         
+// );
+
+// wire [7:0] t;
+
+// decoder_38 u(
+//     .E  (1'b1)  ,
+//     .A0 (Ci)    ,
+//     .A1 (B)     ,
+//     .A2 (A)     ,
+
+//     .Y0n(t[0])    ,  
+//     .Y1n(t[1])    , 
+//     .Y2n(t[2])    , 
+//     .Y3n(t[3])    , 
+//     .Y4n(t[4])    , 
+//     .Y5n(t[5])    , 
+//     .Y6n(t[6])    , 
+//     .Y7n(t[7])    
+// );
+
+// assign D = ~& {t[1],t[2],t[4],t[7]}; //1 2 4 7
+// assign Co= ~& {t[1],t[2],t[3],t[7]}; //1 2 3 7
+// endmodule
 
