@@ -3254,3 +3254,203 @@
 // assign Co= ~& {t[1],t[2],t[3],t[7]}; //1 2 3 7
 // endmodule
 
+// // VL18 实现3-8译码器
+// `timescale 1ns/1ns
+
+// module decoder_38(
+//     input             E1_n   ,
+//     input             E2_n   ,
+//     input             E3     ,
+//     input             A0     ,
+//     input             A1     ,
+//     input             A2     ,
+    
+//     output wire       Y0_n   ,  
+//     output wire       Y1_n   , 
+//     output wire       Y2_n   , 
+//     output wire       Y3_n   , 
+//     output wire       Y4_n   , 
+//     output wire       Y5_n   , 
+//     output wire       Y6_n   , 
+//     output wire       Y7_n   
+// );
+//     assign Y0_n = !((&{E3,!E2_n,!E1_n}) && (&{!A2,!A1,!A0}));
+//     assign Y1_n = !((&{E3,!E2_n,!E1_n}) && (&{!A2,!A1,A0}));
+//     assign Y2_n = !((&{E3,!E2_n,!E1_n}) && (&{!A2,A1,!A0}));
+//     assign Y3_n = !((&{E3,!E2_n,!E1_n}) && (&{!A2,A1,A0}));
+//     assign Y4_n = !((&{E3,!E2_n,!E1_n}) && (&{A2,!A1,!A0}));
+//     assign Y5_n = !((&{E3,!E2_n,!E1_n}) && (&{A2,!A1,A0}));
+//     assign Y6_n = !((&{E3,!E2_n,!E1_n}) && (&{A2,A1,!A0}));
+//     assign Y7_n = !((&{E3,!E2_n,!E1_n}) && (&{A2,A1,A0}));
+
+// endmodule
+
+// VL19 使用3-8译码器①实现逻辑函数
+// ②请使用3-8译码器①和必要的逻辑门实现函数L=(~A)·C+A·B
+// `timescale 1ns/1ns
+
+// module decoder_38(
+//     input             E1_n   ,
+//     input             E2_n   ,
+//     input             E3     ,
+//     input             A0     ,
+//     input             A1     ,
+//     input             A2     ,
+    
+//     output wire       Y0_n   ,  
+//     output wire       Y1_n   , 
+//     output wire       Y2_n   , 
+//     output wire       Y3_n   , 
+//     output wire       Y4_n   , 
+//     output wire       Y5_n   , 
+//     output wire       Y6_n   , 
+//     output wire       Y7_n   
+// );
+// wire E ;
+// assign E = E3 & ~E2_n & ~E1_n;
+// assign  Y0_n = ~(E & ~A2 & ~A1 & ~A0);
+// assign  Y1_n = ~(E & ~A2 & ~A1 &  A0);
+// assign  Y2_n = ~(E & ~A2 &  A1 & ~A0);
+// assign  Y3_n = ~(E & ~A2 &  A1 &  A0);
+// assign  Y4_n = ~(E &  A2 & ~A1 & ~A0);
+// assign  Y5_n = ~(E &  A2 & ~A1 &  A0);
+// assign  Y6_n = ~(E &  A2 &  A1 & ~A0);
+// assign  Y7_n = ~(E &  A2 &  A1 &  A0);
+
+// endmodule
+
+// module decoder0(
+//     input             A     ,
+//     input             B     ,
+//     input             C     ,
+    
+//     output wire       L
+// );
+// wire [7:0] t;
+
+// decoder_38 inst1(
+//     .E1_n (1'b0),
+//     .E2_n (1'b0),
+//     .E3   (1'b1),
+//     .A0   (C),
+//     .A1   (B),
+//     .A2   (A),
+//     .Y0_n (t[0]),
+//     .Y1_n (t[1]),
+//     .Y2_n (t[2]),
+//     .Y3_n (t[3]),
+//     .Y4_n (t[4]),
+//     .Y5_n (t[5]),
+//     .Y6_n (t[6]),
+//     .Y7_n (t[7])   
+// );
+// assign L = !(&{t[1],t[3],t[6],t[7]});
+// endmodule`timescale 1ns/1ns
+
+// VL20 数据选择器实现逻辑电路
+// 描述
+// 请使用此4选1数据选择器和必要的逻辑门实现下列表达式。
+// L=A∙B+A∙~C+B∙C
+// `timescale 1ns/1ns
+
+// module data_sel(
+//     input             S0     ,
+//     input             S1     ,
+//     input             D0     ,
+//     input             D1     ,
+//     input             D2     ,
+//     input             D3     ,
+    
+//     output wire        Y    
+// );
+
+// assign Y = ~S1 & (~S0&D0 | S0&D1) | S1&(~S0&D2 | S0&D3);
+
+// endmodule
+
+// module sel_exp(
+//     input             A     ,
+//     input             B     ,
+//     input             C     ,
+    
+//     output wire       L            
+// );
+
+// data_sel inst1(
+// .S0 (C),
+// .S1 (1'b0),
+// .D0 (A),
+// .D1 (B),
+// .D2 (),
+// .D3 (),
+// .Y  (L)
+// );
+// endmodule
+
+// VL21 根据状态转移表实现时序电路
+// `timescale 1ns/1ns
+
+// module seq_circuit(
+//     input                A   ,
+//     input                clk ,
+//     input                rst_n,
+    
+//     output   wire        Y   
+// );
+
+// reg [1:0] state,next_state;
+
+// always@(*)begin
+//     case(state)
+//         2'b00:next_state=A?2'b11:2'b01;
+//         2'b01:next_state=A?2'b00:2'b10;
+//         2'b10:next_state=A?2'b01:2'b11;
+//         2'b11:next_state=A?2'b10:2'b00;
+//     endcase
+// end
+
+// always@(posedge clk,negedge rst_n)begin
+//     if(!rst_n) state <= 2'b00;
+//     else begin
+//         state <= next_state;
+//     end
+// end
+
+// assign Y = (state==2'b11);
+
+// endmodule
+
+
+// VL22 根据状态转移图实现时序电路
+// `timescale 1ns/1ns
+
+// module seq_circuit(
+//     input                C   ,
+//     input                clk ,
+//     input                rst_n,
+    
+//     output   wire        Y   
+// );
+
+// reg [1:0] state,next_state;
+
+// always@(*)begin
+//     case(state)
+//         2'b00:next_state=C?2'b01:2'b00;
+//         2'b01:next_state=C?2'b01:2'b11;
+//         2'b10:next_state=C?2'b10:2'b00;
+//         2'b11:next_state=C?2'b10:2'b11;
+//     endcase
+// end
+
+// always@(posedge clk,negedge rst_n)begin
+//     if(!rst_n) state <= 2'b00;
+//     else begin
+//         state <= next_state;
+//     end
+// end
+
+// assign Y = (state==2'b11)||((state==2'b10)&C);
+
+// endmodule
+
