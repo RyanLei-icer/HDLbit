@@ -3454,3 +3454,117 @@
 
 // endmodule
 
+// VL23 ROM的简单实现
+// 描述
+// 实现一个深度为8，位宽为4bit的ROM，数据初始化为0，2，4，6，8，10，12，14。可以通过输入地址addr，输出相应的数据data。
+// `timescale 1ns/1ns
+// module rom(
+// 	input clk,
+// 	input rst_n,
+// 	input [7:0]addr,
+	
+// 	output [3:0]data
+// );
+
+// reg [3:0] r [7:0];
+
+// // always@(posedge clk,negedge rst_n)begin
+// // 	if(!rst_n)begin
+// // 		{r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7]} <= {4'd0,4'd2,4'd4,4'd6,4'd8,4'd10,4'd12,4'd14};
+// // 	end
+// // end
+// integer i; 
+// always@(posedge clk or negedge rst_n)begin 
+//     if(!rst_n)begin 
+//         for(i = 0; i < 7; i = i + 1)begin 
+//             r[i] <= i * 2; 
+//             end 
+//         end 
+//     end
+
+// assign data = r[addr];
+// endmodule
+
+// VL24 边沿检测
+// 描述
+// 有一个缓慢变化的1bit信号a，编写一个程序检测a信号的上升沿给出指示信号rise，当a信号出现下降沿时给出指示信号down。
+// 注：rise,down应为单脉冲信号，在相应边沿出现时的下一个时钟为高，之后恢复到0，一直到再一次出现相应的边沿。
+// `timescale 1ns/1ns
+// module edge_detect(
+// 	input clk,
+// 	input rst_n,
+// 	input a,
+	
+// 	output reg rise,
+// 	output reg down
+// );
+	
+// reg pedge;
+
+// always@(posedge clk,negedge rst_n)begin
+// 	if(!rst_n)begin
+// 		pedge <= 1'b0;
+// 		rise  <= 0;
+// 		down  <= 0;
+// 	end
+// 	else begin
+// 		pedge <= a;
+// 		rise  <= ((!pedge&a)===1)?1:0;
+// 		down  <= ((pedge&!a)===1)?1:0;//全等消除不定态
+// 	end
+// end
+
+// endmodule
+
+// //~ `New testbench
+// `timescale  1ns / 1ps
+
+// module tb_edge_detect;
+
+// // edge_detect Parameters
+// parameter PERIOD  = 10;
+
+// // edge_detect Inputs
+// reg   clk                                  = 0 ;
+// reg   rst_n                                = 0 ;
+// reg   a                                    = 0 ;
+
+// // edge_detect Outputs
+// wire  rise                                 ;
+// wire  down                                 ;
+
+// initial
+// begin
+//     $dumpfile ("HDL_bit_wave.vcd");
+//     $dumpvars;
+//     forever #(PERIOD/2)  clk=~clk;
+// end
+
+// initial
+// begin
+//     #(PERIOD*2) rst_n  =  1;
+// end
+
+// edge_detect  u_edge_detect (
+//     .clk                     ( clk     ),
+//     .rst_n                   ( rst_n   ),
+//     .a                       ( a       ),
+
+//     .rise                    ( rise    ),
+//     .down                    ( down    )
+// );
+
+// initial
+// begin
+//     #0.001;
+//     #(PERIOD*2) a  =  1;
+//     #(PERIOD*2) a  =  0;
+//     #(PERIOD*2) a  =  1;
+//     #(PERIOD*2) a  =  0;
+
+//     $finish;
+// end
+
+// endmodule
+
+// 牛客进阶挑战
