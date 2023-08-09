@@ -3568,3 +3568,455 @@
 // endmodule
 
 // 牛客进阶挑战
+// VL25 输入序列连续的序列检测
+// 请编写一个序列检测模块，检测输入信号a是否满足01110001序列，当信号满足该序列，给出指示信号match。
+// `timescale 1ns/1ns
+// module sequence_detect(
+// 	input clk,
+// 	input rst_n,
+// 	input a,
+// 	output reg match
+// 	);
+
+// reg [7:0] t;
+
+// always@(posedge clk,negedge rst_n)begin
+// 	if(!rst_n)begin
+// 		t <= 0;
+// 		match <= 0;
+// 	end
+// 	else begin
+// 		t <= {t[6:0],a};
+// 		match <= t==8'b01110001;
+// 	end
+// end
+
+// endmodule
+
+// VL26 含有无关项的序列检测
+// 编写一个序列检测模块，检测输入信号a是否满足011XXX110序列（长度为9位数据，前三位是011，后三位是110，中间三位不做要求），当信号满足该序列，给出指示信号match
+// `timescale 1ns/1ns
+// module sequence_detect(
+// 	input clk,
+// 	input rst_n,
+// 	input a,
+// 	output reg match
+// 	);
+
+// reg [8:0] t;
+
+// always@(posedge clk,negedge rst_n)begin
+// 	if(!rst_n)begin
+// 		t <= 0;
+// 		match <= 0;
+// 	end
+// 	else begin
+// 		t <= {t[7:0],a};
+// 		match <= (t[8:6]==3'b011)&&(t[2:0]==3'b110);
+//         // match <= {t[8:6],t[2:0]}==6'b011110;
+// 		// match <= t==9'b011xxx110;//语法不支持？
+// 	end
+// end
+// endmodule
+
+// `timescale  1ns / 1ps
+
+// module tb_sequence_detect;
+
+// // sequence_detect Parameters
+// parameter PERIOD  = 10;
+
+
+// // sequence_detect Inputs
+// reg   clk                                  = 0 ;
+// reg   rst_n                                = 0 ;
+// reg   a                                    = 0 ;
+
+// // sequence_detect Outputs
+// wire  match                                ;
+
+
+// initial
+// begin
+//     $dumpfile ("HDL_bit_wave.vcd");
+//     $dumpvars;
+//     forever #(PERIOD/2)  clk=~clk;
+// end
+
+// initial
+// begin
+//     #(PERIOD*2) rst_n  =  1;
+// end
+
+// sequence_detect  u_sequence_detect (
+//     .clk                     ( clk     ),
+//     .rst_n                   ( rst_n   ),
+//     .a                       ( a       ),
+
+//     .match                   ( match   )
+// );
+
+// initial
+// begin
+//     #(PERIOD) a  =  1;
+//     #(PERIOD) a  =  0;
+//     #(PERIOD) a  =  1;
+//     #(PERIOD) a  =  1;
+//     #(PERIOD) a  =  0;
+//     #(PERIOD) a  =  0;
+//     #(PERIOD) a  =  1;
+//     #(PERIOD) a  =  1;
+//     #(PERIOD) a  =  1;
+//     #(PERIOD) a  =  0;
+//     #40;
+//     $finish;
+// end
+
+// endmodule
+
+// VL27 不重叠序列检测
+// 描述
+// 请编写一个序列检测模块，检测输入信号（a）是否满足011100序列， 要求以每六个输入为一组，
+// 不检测重复序列，例如第一位数据不符合，则不考虑后五位。一直到第七位数据即下一组信号的
+// 第一位开始检测。当信号满足该序列，给出指示信号match。当不满足时给出指示信号not_match。
+// `timescale 1ns/1ns
+// module sequence_detect(
+// 	input clk,
+// 	input rst_n,
+// 	input data,
+// 	output reg match,
+// 	output reg not_match
+// 	);
+
+// reg [3:0] state,next_state;
+	
+// always@(*)begin
+// 	case(state)
+// 		0:		next_state = !data ? 1 : 7 ;
+// 		1:		next_state =  data ? 2 : 8 ;
+// 		2:		next_state =  data ? 3 : 9 ;
+// 		3:		next_state =  data ? 4 : 10;
+// 		4:		next_state = !data ? 5 : 11;
+// 		5:		next_state = !data ? 6 : 12;
+// 		6:		next_state = !data ? 1 : 7 ;
+//         12:     next_state = !data ? 1 : 7 ;
+// 		default:next_state = state + 1;
+// 	endcase
+// end
+
+// always@(posedge clk,negedge rst_n)begin
+// 	if(!rst_n)begin
+// 		state <= 0;
+// 	end
+// 	else begin
+// 		state <= next_state;
+// 	end
+// end
+
+// always@(*)begin
+// 	match = (state==6);
+// 	not_match = (state==12);
+// end
+
+// endmodule
+
+// `timescale  1ns / 1ps
+// module tb_sequence_detect;
+
+// // sequence_detect Parameters
+// parameter PERIOD  = 10;
+
+
+// // sequence_detect Inputs
+// reg   clk                                  = 0 ;
+// reg   rst_n                                = 0 ;
+// reg   data                                 = 0 ;
+
+// // sequence_detect Outputs
+// wire  match                                ;
+// wire  not_match                            ;
+
+
+// initial
+// begin
+//     $dumpfile ("HDL_bit_wave.vcd");
+//     $dumpvars;
+//     forever #(PERIOD/2)  clk=~clk;
+// end
+
+// initial
+// begin
+//     #(PERIOD*2) rst_n  =  1;
+// end
+
+// sequence_detect  u_sequence_detect (
+//     .clk                     ( clk         ),
+//     .rst_n                   ( rst_n       ),
+//     .data                    ( data        ),
+
+//     .match                   ( match       ),
+//     .not_match               ( not_match   )
+// );
+
+// initial
+// begin
+//     #(PERIOD);
+//     #(PERIOD) data   =  0;
+//     #(PERIOD) data   =  1;
+//     #(PERIOD) data   =  1;
+//     #(PERIOD) data   =  1;
+//     #(PERIOD) data   =  0;
+//     #(PERIOD) data   =  0;
+
+//     #(PERIOD) data   =  0;
+//     #(PERIOD) data   =  0;
+//     #(PERIOD) data   =  1;
+//     #(PERIOD) data   =  1;
+//     #(PERIOD) data   =  1;
+//     #(PERIOD) data   =  0;
+
+//     #(PERIOD*4);
+//     $finish;
+// end
+
+// endmodule
+
+// VL28 输入序列不连续的序列检测
+// 描述
+// 题目描述：
+// 请编写一个序列检测模块，输入信号端口为data，表示数据有效的指示信号端口为data_valid。
+// 当data_valid信号为高时，表示此刻的输入信号data有效，参与序列检测；当data_valid为低
+// 时，data无效，抛弃该时刻的输入。当输入序列的有效信号满足0110时，拉高序列匹配信号match。
+// `timescale 1ns/1ns
+// module sequence_detect(
+// 	input clk,
+// 	input rst_n,
+// 	input data,
+// 	input data_valid,
+// 	output reg match
+// 	);
+
+// reg	[2:0]	state,next_state;
+
+// always@(*)begin
+// 		case(state)
+// 			0:		next_state = (data_valid)?(!data?1:0):0;
+// 			1:		next_state = (data_valid)?( data?2:1):1;
+// 			2:		next_state = (data_valid)?( data?3:1):2;
+// 			3:		next_state = (data_valid)?(!data?4:0):3;
+// 			4:		next_state = (data_valid)?(!data?1:0):0;
+// 			default:next_state = 0;
+// 		endcase
+// end
+
+// always@(posedge clk,negedge rst_n)begin
+// 	if(!rst_n)begin
+// 		state <= 0;
+// 		match <= 0;
+// 	end
+// 	else begin
+// 		state <= next_state;
+// 	end
+// end
+
+// always@(*)begin
+// 	match = state==4;
+// end
+// endmodule
+
+
+// `timescale  1ns / 1ps
+// module tb_sequence_detect;
+
+// // sequence_detect Parameters
+// parameter PERIOD  = 10;
+
+
+// // sequence_detect Inputs
+// reg   clk                                  = 0 ;
+// reg   rst_n                                = 0 ;
+// reg   data                                 = 0 ;
+// reg   data_valid                           = 0 ;
+
+// // sequence_detect Outputs
+// wire  match                                ;
+
+
+// initial
+// begin
+//     forever #(PERIOD/2)  clk=~clk;
+// end
+
+// initial
+// begin
+//     $dumpfile ("HDL_bit_wave.vcd");
+//     $dumpvars;
+//     #(PERIOD*2) rst_n  =  1;
+// end
+
+// sequence_detect  u_sequence_detect (
+//     .clk                     ( clk          ),
+//     .rst_n                   ( rst_n        ),
+//     .data                    ( data         ),
+//     .data_valid              ( data_valid   ),
+
+//     .match                   ( match        )
+// );
+
+// initial
+// begin
+//     #(PERIOD) data = 1;
+//     #(PERIOD) data = 1;
+//     #(PERIOD) data = 0;
+//     #(PERIOD) data = 0;
+//     #(PERIOD) data = 1;
+//     #(PERIOD) data = 1;
+//     #(PERIOD) data = 0;
+//     #(PERIOD) data = 0;
+//     #(PERIOD) data = 1;
+//     #(PERIOD) data = 1;
+//     #(PERIOD) data = 0;
+//     #(PERIOD) data = 0;
+//     #(PERIOD) data = 1;
+//     #(PERIOD) data = 1;
+//     #(PERIOD) data = 0;
+//     #(PERIOD) data = 0;
+//     #(PERIOD) data = 1;
+//     $finish;
+// end
+
+// initial begin
+//     #(PERIOD) data_valid = 0;
+//     #(PERIOD) data_valid = 0;
+//     #(PERIOD) data_valid = 1;
+//     #(PERIOD) data_valid = 1;
+//     #(PERIOD) data_valid = 1;
+//     #(PERIOD) data_valid = 1;
+//     #(PERIOD) data_valid = 0;
+//     #(PERIOD) data_valid = 1;
+//     #(PERIOD) data_valid = 0;
+//     #(PERIOD) data_valid = 1;
+//     #(PERIOD) data_valid = 1;
+//     #(PERIOD) data_valid = 0;
+//     #(PERIOD) data_valid = 0;
+//     #(PERIOD) data_valid = 1;
+// end
+
+// endmodule
+
+
+// VL29 信号发生器
+// 题目描述：
+// 请编写一个信号发生器模块，根据波形选择信号wave_choise发出相应的波形：wave_choice=0时，
+// 发出方波信号；wave_choice=1时，发出锯齿波信号；wave_choice=2时，发出三角波信号。
+// 方波的周期是20，锯齿波的周期是21，三角波的周期是40，且wave的最大值是20
+// `timescale 1ns/1ns
+// module signal_generator(
+// 	input clk,
+// 	input rst_n,
+// 	input [1:0] wave_choise,
+// 	output reg [4:0]wave
+// 	);
+
+// reg [4:0]	cnt;
+// reg			flag;
+
+// always@(posedge clk,negedge rst_n)begin
+// 	if(!rst_n)begin
+// 		wave <= 0;
+// 	end
+// 	else begin
+// 		case(wave_choise)
+// 			0:wave <= ((cnt>=9)&&cnt!=19)?20:0;
+// 			1:wave <= wave<=19?wave+1:0;
+// 			2:wave <= flag?wave+1:wave-1;
+// 			default:wave <= 0;
+// 		endcase
+// 	end
+// end
+
+// always@(posedge clk,negedge rst_n)begin
+// 	if(!rst_n)begin
+// 		cnt <= 0;
+// 		flag<= 0;
+// 	end
+// 	else begin
+// 		cnt <= (wave_choise==0)?(cnt==19?0:cnt+1):0;
+// 		// flag<= (wave_choise==2) ? (((wave==1)&&(!flag)) ? 1 : (((wave==19)&&(flag))?0:flag)) : 0;
+//         //三目运算太长就不如ifelse语句简洁明了
+//         if (wave_choise==2) begin
+//             if ((wave==1)&&(!flag)) begin
+//                 flag <= 1;
+//             end
+//             if ((wave==19)&&(flag)) begin
+//                 flag <= 0;
+//             end
+//         end
+//         // if (wave_choise==2) begin
+//         //     if (wave) begin
+//         //         flag <= 1;
+//         //     end
+//         //     if (wave==19) begin
+//         //         flag <= 0;
+//         //     end
+//         // end  //注意此处只需判断wave==1或19即可切换flag
+//         else begin
+//             flag <= 0;
+//         end
+// 	end
+// end
+
+// endmodule
+
+// `timescale  1ns / 1ps
+
+// module tb_signal_generator;
+
+// // signal_generator Parameters
+// parameter PERIOD  = 10;
+
+
+// // signal_generator Inputs
+// reg   clk                                  = 0 ;
+// reg   rst_n                                = 0 ;
+// reg   [1:0]  wave_choise                   = 0 ;
+
+// // signal_generator Outputs
+// wire  [4:0]  wave                          ;
+
+
+// initial
+// begin
+//     forever #(PERIOD/2)  clk=~clk;
+// end
+
+// initial
+// begin
+//     $dumpfile ("HDL_bit_wave.vcd");
+//     $dumpvars;
+//     #(PERIOD*2) rst_n  =  1;
+// end
+
+// signal_generator  u_signal_generator (
+//     .clk                     ( clk                ),
+//     .rst_n                   ( rst_n              ),
+//     .wave_choise             ( wave_choise  [1:0] ),
+
+//     .wave                    ( wave         [4:0] )
+// );
+
+// initial
+// begin
+//     #(PERIOD*2);
+//     #(PERIOD*52) wave_choise = 2'b00;
+//     #(PERIOD*52) wave_choise = 2'b01;
+//     #(PERIOD*52) wave_choise = 2'b10;
+//     #(PERIOD*52) wave_choise = 2'b00;
+//     #(PERIOD*52) wave_choise = 2'b11;
+//     #(PERIOD*52);
+//     $finish;
+// end
+
+// endmodule
+
+
