@@ -4019,4 +4019,286 @@
 
 // endmodule
 
+// VL30 数据串转并电路
+// 描述
+// 实现串并转换电路，输入端输入单bit数据，每当本模块接收到6个输入数据后，输出
+// 端输出拼接后的6bit数据。本模块输入端与上游的采用valid-ready双向握手机制，
+// 输出端与下游采用valid-only握手机制。数据拼接时先接收到的数据放到data_b的低位。
+
+// 电路的接口如下图所示。valid_a用来指示数据输入data_a的有效性，valid_b用来
+// 指示数据输出data_b的有效性；ready_a用来指示本模块是否准备好接收上游数据，
+// 本模块中一直拉高；clk是时钟信号；rst_n是异步复位信号。
+// `timescale 1ns/1ns
+
+// module s_to_p(
+// 	input 				clk 		,   
+// 	input 				rst_n		,
+// 	input				valid_a		,
+// 	input	 			data_a		,
+ 
+//  	output	reg 		ready_a		,
+//  	output	reg			valid_b		,
+// 	output  reg [5:0] 	data_b
+// );
+
+// reg [2:0]	cnt;
+// reg [5:0]	t;
+
+// always@(posedge clk,negedge rst_n)begin
+// 	if(!rst_n)begin
+// 		t  <= 0;
+// 	end
+// 	else begin
+// 		t  <= valid_a ? {data_a,t[5:1]} : t;
+// 	end
+// end
+
+// always@(posedge clk,negedge rst_n)begin
+// 	if(!rst_n)begin
+// 		valid_b <= 0;
+// 	end
+// 	else begin
+// 		valid_b <= cnt==5;
+// 	end
+// end
+
+// always@(posedge clk,negedge rst_n)begin
+// 	if(!rst_n)begin
+// 		cnt <= 0;
+// 	end
+// 	else begin
+// 		cnt <= valid_a ? (cnt==6 ? 1 : cnt+1) : cnt;
+// 	end
+// end
+
+// always @(posedge clk,negedge rst_n) begin
+//     if (!rst_n) begin
+//         ready_a <= 0;
+//     end
+//     else begin
+//         ready_a <= 1;
+//     end
+// end
+
+// always @(*) begin
+//     if (!rst_n) begin
+//         data_b = 0;
+//     end
+//     else
+//         data_b=(cnt==6)?t:data_b;
+// end
+
+// endmodule
+
+// //~ `New testbench
+// `timescale  1ns / 1ps
+
+// module tb_s_to_p;
+
+// // s_to_p Parameters
+// parameter PERIOD  = 10;
+
+
+// // s_to_p Inputs
+// reg   clk                                  = 0 ;
+// reg   rst_n                                = 0 ;
+// reg   valid_a                              = 0 ;
+// reg   data_a                               = 0 ;
+
+// // s_to_p Outputs
+// wire  ready_a                              ;
+// wire  valid_b                              ;
+// wire  [5:0]  data_b                        ;
+
+
+// initial
+// begin
+//     forever #(PERIOD/2)  clk=~clk;
+// end
+
+// initial
+// begin
+//     $dumpfile ("HDL_bit_wave.vcd");
+//     $dumpvars;
+//     #(PERIOD*2) rst_n  =  1;
+// end
+
+// s_to_p  u_s_to_p (
+//     .clk                     ( clk            ),
+//     .rst_n                   ( rst_n          ),
+//     .valid_a                 ( valid_a        ),
+//     .data_a                  ( data_a         ),
+
+//     .ready_a                 ( ready_a        ),
+//     .valid_b                 ( valid_b        ),
+//     .data_b                  ( data_b   [5:0] )
+// );
+
+// initial
+// begin
+//     #(PERIOD);
+//     #(PERIOD) data_a=1;valid_a=1;
+//     #(PERIOD) data_a=1;
+//     #(PERIOD) data_a=1;
+//     #(PERIOD) data_a=1;
+//     #(PERIOD) data_a=1;
+//     #(PERIOD) data_a=1;
+//     #(PERIOD) data_a=0;
+//     #(PERIOD) data_a=0;valid_a=0;
+//     #(PERIOD) data_a=0;valid_a=1;
+//     #(PERIOD) data_a=0;
+//     #(PERIOD) data_a=0;
+//     #(PERIOD) data_a=0;valid_a=0;
+//     #(PERIOD) data_a=1;valid_a=1;
+//     #(PERIOD*8); 
+//     $finish;
+// end
+
+// endmodule
+
+
+// VL31 数据累加输出
+// 描述
+// 实现串行输入数据累加输出，输入端输入8bit数据，每当模块接收到4个输入数据后，输出端
+// 输出4个接收到数据的累加结果。输入端和输出端与上下游的交互采用valid-ready双向握手
+// 机制。要求上下游均能满速传输时，数据传输无气泡，不能由于本模块的设计原因产生额外的性能损失。
+
+// 电路的接口如下图所示。valid_a用来指示数据输入data_in的有效性，valid_b用来指示数据输出
+// data_out的有效性；ready_a用来指示本模块是否准备好接收上游数据，ready_b表示下游
+// 是否准备好接收本模块的输出数据；clk是时钟信号；rst_n是异步复位信号。
+
+//此题描述不清，出题不好，太多条件未给出，状态机实现，考虑因素太多。
+// `timescale 1ns/1ns
+
+// module valid_ready(
+//     input 				clk 		,   
+//     input 				rst_n		,
+//     input		[7:0]	data_in		,
+//     input				valid_a		,
+//     input	 			ready_b		,
+    
+//     output		 		ready_a		,   //组合逻辑实现，立即输出变化，无气泡
+//     output	reg		    valid_b		,   //时序逻辑
+//     output  reg [9:0] 	data_out        //时序逻辑
+// );
+
+// reg [2:0] state,next_state;
+
+// always@(*)begin
+// 	case(state)
+//         0:  	next_state = 1; //复位后进入初始态
+//         1:		next_state = valid_a ? 2 : 1;   //等待valid_a有效,接收第一位数据
+//         2:		next_state = valid_a ? 3 : 2;   //valid_a有效,接收第二位数据
+//         3:		next_state = valid_a ? 4 : 3;   //valid_a有效,接收第三位数据
+//         4:		next_state = valid_a ? 5 : 4;   //valid_a有效,接收第四位数据
+// 		5:		next_state = valid_a&&ready_b ? 2 : 5;   //等待ready_b有效
+// 		default:next_state = 0;
+// 	endcase
+// end
+
+// always@(posedge clk,negedge rst_n)begin
+// 	if(!rst_n)begin
+// 		state <= 0;
+// 	end
+// 	else begin
+// 		state <= next_state;
+// 	end
+// end
+
+// always@(posedge clk,negedge rst_n)begin
+// 	if(!rst_n)begin
+// 		data_out <= 0;
+// 	end
+// 	else begin
+//         case (state)
+//             1:      data_out <= (valid_a) ? data_in             : data_out;
+//             2:      data_out <= (valid_a) ? data_out + data_in  : data_out;
+//             3:      data_out <= (valid_a) ? data_out + data_in  : data_out;
+//             4:      data_out <= (valid_a) ? data_out + data_in  : data_out;//此处需要判断valid_a有效
+//             5:      data_out <= ready_b   ? (valid_a?data_in:0) : data_out;//下游模块握手后判断valid_a有效
+//             default:data_out <= data_out;
+//         endcase
+// 	end
+// end
+
+// always @(posedge clk or negedge rst_n) begin
+//     if (!rst_n) begin
+//         valid_b <= 0;
+//     end
+//     else begin
+//         valid_b <= ((state==4)&&valid_a)||((state==5)&&!ready_b&&valid_a);  //输出时拉高，直到下游模块处理好(ready_b=1)。
+//     end
+// end
+
+// assign ready_a = !((state==5)&&!ready_b);   //下游模块一准备好立即拉高
+
+// endmodule
+
+// //~ `New testbench
+// `timescale  1ns / 1ps
+
+// module tb_valid_ready;
+
+// // valid_ready Parameters
+// parameter PERIOD  = 10;
+
+
+// // valid_ready Inputs
+// reg   clk                                  = 0 ;
+// reg   rst_n                                = 0 ;
+// reg   [7:0]  data_in                       = 0 ;
+// reg   valid_a                              = 0 ;
+// reg   ready_b                              = 0 ;
+
+// // valid_ready Outputs
+// wire  ready_a                              ;
+// wire  valid_b                              ;
+// wire  [9:0]  data_out                      ;
+
+
+// initial
+// begin
+//     forever #(PERIOD/2)  clk=~clk;
+// end
+
+// initial
+// begin
+//     $dumpfile ("HDL_bit_wave.vcd");
+//     $dumpvars;
+//     #(PERIOD*2) rst_n  =  1;
+// end
+
+// valid_ready  u_valid_ready (
+//     .clk                     ( clk             ),
+//     .rst_n                   ( rst_n           ),
+//     .data_in                 ( data_in   [7:0] ),
+//     .valid_a                 ( valid_a         ),
+//     .ready_b                 ( ready_b         ),
+
+//     .ready_a                 ( ready_a         ),
+//     .valid_b                 ( valid_b         ),
+//     .data_out                ( data_out  [9:0] )
+// );
+
+// initial
+// begin
+//     #(PERIOD*1.5+0.01);
+//     #(PERIOD)   data_in = 8'd1;valid_a = 1;
+//     #(PERIOD)   data_in = 8'd2;
+//     #(PERIOD)   data_in = 8'd3;
+//     #(PERIOD)   data_in = 8'd4;
+//     #(PERIOD)   data_in = 8'd5;
+//     #(PERIOD*2) ready_b = 1;
+//     #(PERIOD)   data_in = 8'd2;
+//     #(PERIOD)   data_in = 8'd3;
+//     #(PERIOD)   data_in = 8'd4;valid_a = 0;
+//     #(PERIOD)   data_in = 8'd5;valid_a = 1;
+//     #(PERIOD)   data_in = 8'd6;
+//     #(PERIOD)   ready_b = 1;
+//     #(PERIOD*2) ready_b = 0;
+//     $finish;
+// end
+
+// endmodule
+
 
