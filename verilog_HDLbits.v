@@ -4302,3 +4302,420 @@
 // endmodule
 
 
+// VL32 非整数倍数据位宽转换24to128
+// 描述
+// 实现数据位宽转换电路，实现24bit数据输入转换为128bit数据输出。其中，先到的数据应置于输出的高bit位。
+
+// 电路的接口如下图所示。valid_in用来指示数据输入data_in的有效性，
+// valid_out用来指示数据输出data_out的有效性；clk是时钟信号；rst_n是异步复位信号。
+// 注意，此题的转换不能导致数据丢失。
+// `timescale 1ns/1ns
+
+// module width_24to128(
+// 	input 				clk 		,   
+// 	input 				rst_n		,
+// 	input				valid_in	,
+// 	input	[23:0]		data_in		,
+    
+//     output	reg			valid_out	,
+// 	output  reg [127:0]	data_out
+// );
+
+// reg	[3:0]	state,next_state;
+// reg [127:0] t;
+
+// always@(*)begin
+// 	case(state)
+//         15: next_state = (valid_in) ? 1 : 0;
+// 		default:next_state = (valid_in) ? state + 1 : state;
+// 	endcase
+// end
+
+// // 状态跳转
+// always@(posedge clk,negedge rst_n)begin
+// 	if(!rst_n)begin
+// 		state <= 0;
+// 	end
+// 	else begin
+// 		state <= next_state;
+// 	end
+// end
+
+// // 中间处理
+// always@(posedge clk,negedge rst_n)begin
+//     if (!rst_n) begin
+//         t = 0;
+//     end
+//     else begin
+//         t <= valid_in ? {t[103:0],data_in} : t;//移位寄存器暂存数据
+//     end
+// end
+
+// // 输出逻辑(关键)
+// always @(posedge clk,negedge rst_n) begin
+//     if (!rst_n) begin
+//         data_out  <= 0;
+//         valid_out <= 0;
+//     end
+//     else begin
+//         case (state)
+//             5: data_out <= valid_in ? {t[119:0],data_in[23:16]} : data_out;
+//             10:data_out <= valid_in ? {t[111:0],data_in[23:8 ]} : data_out;
+//             15:data_out <= valid_in ? {t[103:0],data_in       } : data_out;
+//         endcase
+//         valid_out <= (state==5)||(state==10)||(state==15);
+//     end
+// end
+
+// endmodule
+
+// `timescale  1ns / 1ps
+
+// module tb_width_24to128;
+
+// // width_24to128 Parameters
+// parameter PERIOD  = 10;
+
+
+// // width_24to128 Inputs
+// reg   clk                                  = 1 ;
+// reg   rst_n                                = 0 ;
+// reg   valid_in                             = 0 ;
+// reg   [23:0]  data_in                      = 0 ;
+
+// // width_24to128 Outputs
+// wire  valid_out                            ;
+// wire  [127:0]  data_out                    ;
+
+
+// initial
+// begin
+//     forever #(PERIOD/2)  clk=~clk;
+// end
+
+// initial
+// begin
+//     $dumpfile ("HDL_bit_wave.vcd");
+//     $dumpvars;
+//     #(PERIOD*2) rst_n  =  1;
+// end
+
+// width_24to128  u_width_24to128 (
+//     .clk                     ( clk                ),
+//     .rst_n                   ( rst_n              ),
+//     .valid_in                ( valid_in           ),
+//     .data_in                 ( data_in    [23:0]  ),
+
+//     .valid_out               ( valid_out          ),
+//     .data_out                ( data_out   [127:0] )
+// );
+
+// initial
+// begin
+//     #(PERIOD*3) valid_in  =  1;data_in   =  24'h111111;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'h222222;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'h333333;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'h444444;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'h555555;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'h666666;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'h777777;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'h888888;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'h999999;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'hAAAAAA;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'hBBBBBB;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'hCCCCCC;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'hDDDDDD;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'hEEEEEE;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'hFFFFFF;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'h111111;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'h222222;
+//     #(PERIOD  ) valid_in  =  1;data_in   =  24'h333333;
+//     #(PERIOD*8);
+//     $finish;
+// end
+
+// endmodule
+
+
+// `timescale 1ns/1ns
+
+// module width_8to12(
+// 	input 				    clk 	,   
+// 	input 			        rst_n	,
+// 	input				    valid_in,
+// 	input	[7:0]		    data_in	,
+    
+//     output  reg			    valid_out,
+//     output  reg [11:0]      data_out
+// );
+
+// reg [11:0]  data_out_reg;
+// reg [1:0]   state,next_state;
+
+// always @(*) begin
+//     case (state)
+//         3:  next_state = valid_in ? 1 : state;
+//         default:next_state = valid_in ? state + 1 : state;
+//     endcase
+// end
+
+// always @(posedge clk or negedge rst_n) begin
+//     if (!rst_n) begin
+//         state <= 0;
+//     end
+//     else begin
+//         state <= next_state;
+//     end
+// end
+
+// always @(posedge clk or negedge rst_n) begin
+//     if (!rst_n) begin
+//         data_out_reg <= 0;
+//     end
+//     else begin
+//         data_out_reg <= valid_in ? {data_out_reg[7:0],data_in} : data_out_reg;
+//     end
+// end
+
+// always @(posedge clk or negedge rst_n) begin
+//     if (!rst_n) begin
+//         data_out <= 0;
+//         valid_out<= 0;
+//     end
+//     else begin
+//         case (state)
+//             1:  data_out <= valid_in ? {data_out_reg[7:0],data_in[7:4]} : data_out;
+//             2:  data_out <= valid_in ? {data_out_reg[3:0],data_in} : data_out;
+//         endcase
+
+//         valid_out <= ((state == 1)&&(next_state==2))||((state == 2)&&(next_state==3));
+//     end
+// end
+// endmodule
+
+// `timescale  1ns / 1ps
+
+// module tb_width_8to12;
+
+// // width_8to12 Parameters
+// parameter PERIOD  = 10;
+
+
+// // width_8to12 Inputs
+// reg   clk                                  = 1 ;
+// reg   rst_n                                = 0 ;
+// reg   valid_in                             = 0 ;
+// reg   [7:0]  data_in                       = 0 ;
+
+// // width_8to12 Outputs
+// wire  valid_out                            ;
+// wire  [11:0]  data_out                     ;
+
+
+// initial
+// begin
+//     forever #(PERIOD/2)  clk=~clk;
+// end
+
+// initial
+// begin
+//     $dumpfile ("HDL_bit_wave.vcd");
+//     $dumpvars;
+//     #(PERIOD*2) rst_n  =  1;
+// end
+
+// width_8to12  u_width_8to12 (
+//     .clk                     ( clk               ),
+//     .rst_n                   ( rst_n             ),
+//     .valid_in                ( valid_in          ),
+//     .data_in                 ( data_in    [7:0]  ),
+
+//     .valid_out               ( valid_out         ),
+//     .data_out                ( data_out   [11:0] )
+// );
+
+// initial
+// begin
+//     #(PERIOD*2+0.001)  ;
+//     #(PERIOD  )  valid_in  =  1;data_in   =  8'h11;
+//     #(PERIOD  )  valid_in  =  1;data_in   =  8'h22;
+//     #(PERIOD  )  valid_in  =  0;data_in   =  8'h33;
+//     #(PERIOD  )  valid_in  =  1;data_in   =  8'h44;
+//     #(PERIOD  )  valid_in  =  1;data_in   =  8'h55;
+//     #(PERIOD  )  valid_in  =  1;data_in   =  8'h66;
+//     #(PERIOD  )  valid_in  =  1;data_in   =  8'h77;
+//     #(PERIOD  )  valid_in  =  1;data_in   =  8'h88;
+//     #(PERIOD  )  valid_in  =  1;data_in   =  8'h99;
+//     #(PERIOD  )  valid_in  =  1;data_in   =  8'hAA;
+//     #(PERIOD  )  valid_in  =  1;data_in   =  8'hBB;
+//     #(PERIOD  )  valid_in  =  1;data_in   =  8'hCC;
+//     #(PERIOD*4)  ;
+//     $finish;
+// end
+
+// endmodule
+
+// VL34 整数倍数据位宽转换8to16
+// 描述
+// 实现数据位宽转换电路，实现8bit数据输入转换为16bit数据输出。
+// 其中，先到的8bit数据应置于输出16bit的高8位。
+
+// 电路的接口如下图所示。valid_in用来指示数据输入data_in的有效性，
+// valid_out用来指示数据输出data_out的有效性；clk是时钟信号；rst_n是异步复位信号。
+// `timescale 1ns/1ns
+
+// module width_8to16(
+// 	input 				    clk 		,   
+// 	input 				    rst_n		,
+// 	input				    valid_in	,
+// 	input	        [7:0]   data_in	    ,
+    
+//     output	 reg			valid_out,
+// 	output   reg    [15:0]  data_out
+// );
+
+// reg         state,next_state;
+// reg [15:0]  data_in_reg;
+
+// // 状态机组合逻辑
+// always@(*)begin
+// 	case(state)
+// 		0:next_state = valid_in ? 1 : 0;
+//         1:next_state = valid_in ? 0 : 1;
+//     endcase
+// end
+
+// // 状态机时序逻辑
+// always @(posedge clk or negedge rst_n)
+// begin
+// 	if(!rst_n)begin
+// 		state <= 0;
+//     end
+// 	else begin
+// 		state <= next_state;
+//     end
+// end
+
+// // 数据输出
+// always @(posedge clk or negedge rst_n) begin
+//     if(!rst_n) begin
+//         valid_out   <= 0;
+//         data_in_reg <= 0;
+//     end
+//     else begin
+//         valid_out <= (state==1)&&valid_in;
+//         data_in_reg <= {data_in_reg[7:0],data_in};
+//     end
+// end
+
+// // 数据输出
+// always @(posedge clk or negedge rst_n) begin
+//     if(!rst_n) begin
+//         data_out <= 0;
+//     end
+//     else begin
+//         data_out <= ((state==1)&&valid_in) ? {data_in_reg[7:0],data_in} : data_out;
+//     end
+// end
+
+// endmodule
+
+
+// VL35 状态机-非重叠的序列检测
+// 描述
+// 设计一个状态机，用来检测序列 10111，要求：
+// 1、进行非重叠检测   即101110111 只会被检测通过一次
+// 2、寄存器输出且同步输出结果
+// 注意rst为低电平复位
+// `timescale 1ns/1ns
+
+// module sequence_test1(
+// 	input wire clk  ,
+// 	input wire rst  ,
+// 	input wire data ,
+// 	output reg flag
+// );
+
+// reg [2:0] state,next_state;
+
+// always @(*) begin
+//     case(state)
+//         0:next_state = ( data) ? 1 : 0;
+//         1:next_state = (!data) ? 2 : 1;
+//         2:next_state = ( data) ? 3 : 0;
+//         3:next_state = ( data) ? 4 : 0;
+//         4:next_state = 0;
+//         default:next_state = 0;
+//     endcase
+// end
+
+// always @(posedge clk,negedge rst)begin
+//     if(!rst) begin
+//         state <= 0;
+//     end
+//     else begin
+//         state <= next_state;
+//     end
+// end
+
+// always @(posedge clk,negedge rst)begin
+//     if(!rst) begin
+//         flag <= 0;
+//     end
+//     else begin
+//         flag <= ((state==4)&&(data)) ? 1 : 0;
+//     end
+// end
+// endmodule
+
+
+// VL36 状态机-重叠序列检测
+// 描述
+// 设计一个状态机，用来检测序列 1011，要求：
+// 1、进行重叠检测   即10110111 会被检测通过2次
+// 2、寄存器输出，在序列检测完成下一拍输出检测有效
+// 注意rst为低电平复位
+// `timescale 1ns/1ns
+
+// module sequence_test2(
+// 	input wire clk  ,
+// 	input wire rst  ,
+// 	input wire data ,
+// 	output reg flag
+// );
+
+// reg [1:0] state,next_state;
+// reg       flag_reg;
+
+// always @(*) begin
+//     case(state)
+//         0:next_state = ( data) ? 1 : 0;
+//         1:next_state = (!data) ? 2 : 1;
+//         2:next_state = ( data) ? 3 : 0;
+//         3:next_state = ( data) ? 1 : 0;
+//     endcase
+// end
+
+// always @(posedge clk,negedge rst)begin
+//     if(!rst) begin
+//         state <= 0;
+//     end
+//     else begin
+//         state <= next_state;
+//     end
+// end
+
+// always @(posedge clk,negedge rst)begin
+//     if(!rst) begin
+//         flag     <= 0;
+//         flag_reg <= 0;
+//     end
+//     else begin
+//         flag_reg <= ((state==3)&&(data)) ? 1 : 0;
+//         flag     <= flag_reg;
+//     end
+// end
+
+// endmodule
+
+
