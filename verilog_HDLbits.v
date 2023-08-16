@@ -4719,3 +4719,451 @@
 // endmodule
 
 
+// VL37 时钟分频（偶数）
+// 描述
+// 请使用D触发器设计一个同时输出2/4/8分频的50%占空比的时钟分频器
+// 注意rst为低电平复位
+// `timescale 1ns/1ns
+
+// module even_div
+//     (
+//     input     wire rst ,
+//     input     wire clk_in,
+//     output    wire clk_out2,
+//     output    wire clk_out4,
+//     output    wire clk_out8
+//     );
+
+// reg clk_2,clk_4,clk_8;
+// reg [1:0] cnt;
+
+// always @(posedge clk_in,negedge rst) begin
+//     if(!rst) begin
+//         clk_2 <= 0;
+//         clk_4 <= 0;
+//         clk_8 <= 0;
+//     end
+//     else begin
+//         clk_2 <= !clk_2;
+//         clk_4 <= (cnt==0||cnt==2) ? !clk_4 : clk_4;
+//         clk_8 <= (cnt==0) ? !clk_8 : clk_8;
+//     end
+// end
+
+// always @(posedge clk_in,negedge rst) begin
+//     if(!rst) begin
+//         cnt <= 0;
+//     end
+//     else begin
+//         cnt <= cnt + 1;
+//     end
+// end
+
+// assign {clk_out2,clk_out4,clk_out8} = {clk_2,clk_4,clk_8};
+// endmodule
+
+
+// VL38 自动贩售机1
+// 描述
+// 题目描述：    
+// 设计一个自动贩售机，输入货币有三种，为0.5/1/2元，饮料价格是1.5元，要求进行找零，找零只会支付0.5元。
+// ps:
+// 投入的货币会自动经过边沿检测并输出一个在时钟上升沿到1，在下降沿到0的脉冲信号
+// 注意rst为低电平复位
+
+// // 方案一：无锁存器方案
+// `timescale 1ns/1ns
+// module seller1(
+// 	input wire clk  ,
+// 	input wire rst  ,
+// 	input wire d1 , //0.5
+// 	input wire d2 , //1
+// 	input wire d3 , //2
+	
+// 	output reg out1,
+// 	output reg [1:0]out2
+// );
+
+// reg [2:0] state, next_state;
+// wire [2:0] d = {d3,d2,d1};  //0.5的倍数bit
+
+// always @(*) begin
+// 	case(state)
+// 		0: begin
+// 			case (d)
+//                 0:next_state = 0;
+//                 1:next_state = 1;
+//                 2:next_state = 2;
+//                 4:next_state = 4;
+//                 default: next_state = 0;
+//             endcase
+//         end     //未投币
+// 		1: begin
+// 			case (d)
+//                 0:next_state = 1;
+//                 1:next_state = 2;
+//                 2:next_state = 3;
+//                 4:next_state = 5;
+//                 default: next_state = 0;
+//             endcase
+//         end     //投币未投够
+// 		2: begin
+// 			case (d)
+//                 0:next_state = 2;
+//                 1:next_state = 3;
+//                 2:next_state = 4;
+//                 4:next_state = 6;
+//                 default: next_state = 0;
+//             endcase
+//         end     //找零
+//         default: next_state = 0;
+//     endcase
+// end
+
+// always @(negedge clk,negedge rst) begin
+// 	if(!rst) begin
+// 		state <= 0;
+//     end
+//     else begin
+//         state <= next_state;
+//     end
+// end  //由于组合逻辑未使用锁存器结构，所以需要使用negedge触发
+
+// always @(posedge clk,negedge rst) begin
+//     if (!rst) begin
+//         out1 <= 0;
+//         out2 <= 0;
+//     end
+//     else begin
+//         case(state)
+//             3: begin
+//                 out1 = 1;
+//                 out2 = 0;
+//             end
+//             4: begin
+//                 out1 = 1;
+//                 out2 = 1;
+//             end
+//             5: begin
+//                 out1 = 1;
+//                 out2 = 2;
+//             end
+//             6: begin
+//                 out1 = 1;
+//                 out2 = 3;
+//             end
+//             default: begin
+//                 out1 = 0;
+//                 out2 = 0;
+//             end
+//         endcase
+//     end
+// end
+
+// endmodule
+
+// // 方案二：有锁存器方案
+// `timescale 1ns/1ns
+// module seller1(
+// 	input wire clk  ,
+// 	input wire rst  ,
+// 	input wire d1 , //0.5
+// 	input wire d2 , //1
+// 	input wire d3 , //2
+	
+// 	output reg out1,
+// 	output reg [1:0]out2
+// );
+
+// reg [2:0] state, next_state;
+// wire [2:0] d = {d3,d2,d1};  //0.5的倍数bit
+
+// // 组合逻辑中使用锁存结构检测脉冲
+// always @(*) begin
+// 	case(state)
+// 		0: begin
+// 			case (d)
+//                 1:next_state = 1;
+//                 2:next_state = 2;
+//                 4:next_state = 4;
+//                 default: next_state = next_state;
+//             endcase
+//         end     //未投币
+// 		1: begin
+// 			case (d)
+//                 1:next_state = 2;
+//                 2:next_state = 3;
+//                 4:next_state = 5;
+//                 default: next_state = next_state;
+//             endcase
+//         end     //投币未投够
+// 		2: begin
+// 			case (d)
+//                 1:next_state = 3;
+//                 2:next_state = 4;
+//                 4:next_state = 6;
+//                 default: next_state = next_state;
+//             endcase
+//         end     //找零
+//         default: next_state = 0;
+//     endcase
+// end
+
+// always @(posedge clk,negedge rst) begin
+// 	if(!rst) begin
+// 		state <= 0;
+//     end
+//     else begin
+//         state <= next_state;
+//     end
+// end  //由于组合逻辑使用锁存器结构，所以可以使用posedge触发
+
+// always @(*) begin
+//     if (!rst) begin
+//         out1 = 0;
+//         out2 = 0;
+//     end
+//     else begin
+//         case(state)
+//             3: begin
+//                 out1 = 1;
+//                 out2 = 0;
+//             end
+//             4: begin
+//                 out1 = 1;
+//                 out2 = 1;
+//             end
+//             5: begin
+//                 out1 = 1;
+//                 out2 = 2;
+//             end
+//             6: begin
+//                 out1 = 1;
+//                 out2 = 3;
+//             end
+//             default: begin
+//                 out1 = 0;
+//                 out2 = 0;
+//             end
+//         endcase
+//     end
+// end
+
+// endmodule
+
+// `timescale  1ns / 1ps
+
+// module tb_seller1;
+
+// // seller1 Parameters
+// parameter PERIOD  = 10;
+
+
+// // seller1 Inputs
+// reg   clk                                  = 0 ;
+// reg   rst                                  = 0 ;
+// reg   d1                                   = 0 ;
+// reg   d2                                   = 0 ;
+// reg   d3                                   = 0 ;
+
+// // seller1 Outputs
+// wire  out1                                 ;
+// wire  [1:0]  out2                          ;
+
+
+// initial
+// begin
+//     forever #(PERIOD/2)  clk=~clk;
+// end
+
+// initial
+// begin
+//     $dumpfile("HDL_bit_wave.vcd");
+//     $dumpvars;
+//     #(PERIOD*2) rst  =  1;
+// end
+
+// seller1  u_seller1 (
+//     .clk                     ( clk         ),
+//     .rst                     ( rst         ),
+//     .d1                      ( d1          ),
+//     .d2                      ( d2          ),
+//     .d3                      ( d3          ),
+
+//     .out1                    ( out1        ),
+//     .out2                    ( out2  [1:0] )
+// );
+
+
+// initial begin
+// #10;
+// rst = 1'b1;
+// #20;
+
+// @(posedge clk);{d1,d2,d3}=3'b100 ;//0.5
+// @(negedge clk);{d1,d2,d3}=3'b000 ;
+// #50
+// @(posedge clk);{d1,d2,d3}=3'b010 ;//1.5
+// @(negedge clk);{d1,d2,d3}=3'b000 ;
+// #30;
+// @(posedge clk);{d1,d2,d3}=3'b100 ;//0.5
+// @(negedge clk);{d1,d2,d3}=3'b000 ;
+// #60;
+// @(posedge clk);{d1,d2,d3}=3'b100 ;//1
+// @(negedge clk);{d1,d2,d3}=3'b000 ;
+// #50
+// @(posedge clk);{d1,d2,d3}=3'b001 ;//3
+// @(negedge clk);{d1,d2,d3}=3'b000 ;
+// #50
+// @(posedge clk);{d1,d2,d3}=3'b001 ;//2
+// @(negedge clk);{d1,d2,d3}=3'b000 ;
+// #30
+// @(posedge clk);{d1,d2,d3}=3'b100 ;//0.5
+// @(negedge clk);{d1,d2,d3}=3'b000 ;
+// #60
+// @(posedge clk);{d1,d2,d3}=3'b001 ;//2.5
+// @(negedge clk);{d1,d2,d3}=3'b000 ;
+// #50
+// @(posedge clk);{d1,d2,d3}=3'b010 ;//1 
+// @(negedge clk);{d1,d2,d3}=3'b000 ;
+// #6
+// @(posedge clk);{d1,d2,d3}=3'b010 ;//2
+// @(negedge clk);{d1,d2,d3}=3'b000 ;
+
+// #20 $finish;
+// end
+
+// endmodule
+
+
+// VL39 自动贩售机2
+// 描述
+// 题目描述：    
+// 设计一个自动贩售机，输入货币有两种，为0.5/1元，饮料价格是1.5/2.5元，
+// 要求进行找零，找零只会支付0.5元。
+// ps:
+// 1、投入的货币会自动经过边沿检测并输出一个在时钟上升沿到1，在下降沿到0的脉冲信号
+// 2、此题忽略出饮料后才能切换饮料的问题
+// 注意rst为低电平复位
+// 信号示意图：
+// d1 0.5
+// d2 1
+// sel  选择饮料
+// out1 饮料1
+// out2 饮料2
+// out3 零钱
+// `timescale 1ns/1ns
+
+// module seller2(
+// 	input wire clk  ,
+// 	input wire rst  ,
+// 	input wire d1   ,
+// 	input wire d2   ,
+// 	input wire sel  ,
+	
+// 	output reg out1 ,   //饮料1(1.5元)
+// 	output reg out2 ,   //饮料2(2.5元)
+// 	output reg out3     //找零(0.5元)
+// );
+
+// reg [3:0] state, next_state;
+// wire [2:0] d = {sel,d2,d1};  //饮料种类与投币
+
+// // 组合逻辑中使用锁存结构检测脉冲
+// always @(*) begin
+// 	case(state)
+// 		0: begin
+// 			case (d)
+//                 4'b001:next_state = 1;
+//                 4'b010:next_state = 2;
+//                 4'b101:next_state = 1;
+//                 4'b110:next_state = 2;
+//                 default: next_state = next_state;
+//             endcase
+//         end     //未投币
+// 		1: begin
+// 			case (d)
+//                 4'b001:next_state = 2;
+//                 4'b010:next_state = 5;  //准备找零0,输出饮料1
+//                 4'b101:next_state = 2;
+//                 4'b110:next_state = 3;
+//                 default: next_state = next_state;
+//             endcase
+//         end     //投币0.5
+// 		2: begin
+// 			case (d)
+//                 4'b001:next_state = 5;  //准备找零0,输出饮料1
+//                 4'b010:next_state = 6;  //准备找零0.5,输出饮料1
+//                 4'b101:next_state = 3;
+//                 4'b110:next_state = 4;
+//                 default: next_state = next_state;
+//             endcase
+//         end     //投币1
+// 		3: begin
+// 			case (d)
+//                 4'b101:next_state = 4;
+//                 4'b110:next_state = 7;  //准备找零0,输出饮料2
+//                 default: next_state = next_state;
+//             endcase
+//         end     //投币1.5
+// 		4: begin
+// 			case (d)
+//                 4'b101:next_state = 7;  //准备找零0,输出饮料2
+//                 4'b110:next_state = 8;  //准备找零0.5,输出饮料2
+//                 default: next_state = next_state;
+//             endcase
+//         end     //投币2
+
+//         default: next_state = 0;
+//     endcase
+// end
+
+// always @(posedge clk,negedge rst) begin
+// 	if(!rst) begin
+// 		state <= 0;
+//     end
+//     else begin
+//         state <= next_state;
+//     end
+// end  //由于组合逻辑使用锁存器结构，所以可以使用posedge触发
+
+// always @(*) begin
+//     if (!rst) begin
+//         out1 = 0;
+//         out2 = 0;
+//         out3 = 0;
+//     end
+//     else begin
+//         case(state)
+//             5: begin
+//                 out1 = 1;
+//                 out2 = 0;
+//                 out3 = 0;
+//             end
+//             6: begin
+//                 out1 = 1;
+//                 out2 = 0;
+//                 out3 = 1;
+//             end
+//             7: begin
+//                 out1 = 0;
+//                 out2 = 1;
+//                 out3 = 0;
+//             end
+//             8: begin
+//                 out1 = 0;
+//                 out2 = 1;
+//                 out3 = 1;
+//             end
+//             default: begin
+//                 out1 = 0;
+//                 out2 = 0;
+//                 out3 = 0;
+//             end
+//         endcase
+//     end
+// end
+
+// endmodule
+
+
