@@ -5167,3 +5167,91 @@
 // endmodule
 
 
+// VL40 占空比50%的奇数分频
+// 描述
+// 设计一个同时输出7分频的时钟分频器，占空比要求为50%
+// 注意rst为低电平复位
+// `timescale 1ns/1ns
+
+// module odo_div_or
+//     (
+//     input    wire  rst ,
+//     input    wire  clk_in,
+//     output   reg   clk_out7
+//     );
+
+// reg [2:0] cnt_r,cnt_d;
+
+// always@(posedge clk_in,negedge rst)begin
+//     if(!rst)begin
+//         cnt_r <= 0;
+//     end
+//     else begin
+//         cnt_r <= cnt_r==6 ? 0 : cnt_r + 1;
+//     end
+// end
+
+// always@(negedge clk_in,negedge rst)begin
+//     if(!rst)begin
+//         cnt_d <= 0;
+//     end
+//     else begin
+//         cnt_d <= cnt_d==6 ? 0 : cnt_d + 1;
+//     end
+// end
+
+// always@(*)begin
+//     if(!rst)begin
+//         clk_out7 = 0;
+//     end
+//     else begin
+//         clk_out7 = cnt_d==4 ? 1 : (cnt_r==0 ? 0 : clk_out7);
+//     end
+// end
+
+// endmodule
+
+// `timescale  1ns / 1ps
+
+// module tb_odo_div_or;
+
+// // odo_div_or Parameters
+// parameter PERIOD  = 10;
+
+
+// // odo_div_or Inputs
+// reg   rst                                  = 0 ;
+// reg   clk_in                               = 0 ;
+
+// // odo_div_or Outputs
+// wire  clk_out7                             ;
+
+
+// initial
+// begin
+//     forever #(PERIOD/2)  clk_in=~clk_in;
+// end
+
+// initial
+// begin
+//     $dumpfile("HDL_bit_wave.vcd");
+//     $dumpvars;
+//     #(PERIOD*2) rst  <=  1; //非阻塞赋值会导致第一个下降沿采样的rst电平为0,cnt_d延后一个clk。
+//     // #(PERIOD*2) rst  =  1; //阻塞赋值会导致第一个下降沿采样的rst电平为1,cnt_d与rst同时变化。
+//     // 估计牛客设计的rst信号是阻塞赋值，所以cnt_d与rst同时变化。
+// end
+
+// odo_div_or  u_odo_div_or (
+//     .rst                     ( rst        ),
+//     .clk_in                  ( clk_in     ),
+
+//     .clk_out7                ( clk_out7   )
+// );
+
+// initial
+// begin
+//     #(PERIOD*25) ;
+//     $finish;
+// end
+
+// endmodule
