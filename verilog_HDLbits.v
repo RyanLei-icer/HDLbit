@@ -5255,3 +5255,201 @@
 // end
 
 // endmodule
+
+// VL41 任意小数分频
+// 描述
+// 请设计一个可以实现任意小数分频的时钟分频器，比如说8.7分频的时钟信号
+// 注意rst为低电平复位
+// 提示：
+// 其实本质上是一个简单的数学问题，即如何使用最小公倍数得到时钟周期的分别频比。
+// 设小数为nn，此处以8.7倍分频的时钟周期为例。
+// 首先，由于不能在硬件上进行小数的运算（比如2.1个时钟这种是不现实的，也不存在3.3个寄存器），
+// 小数分频不能做到分频后每个时钟周期都是源时钟的nn倍，也无法实现占空比为1/2，因此，考虑小数分频，
+// 其实现方式应当为10个clkout时钟周期是10个clkin时钟周期的8.7倍。
+
+// 本题要求3个8分频先输出，再输出7个9分频
+// `timescale 1ns/1ns
+
+// module div_M_N( input  wire clk_in,
+//                 input  wire rst,
+//                 output wire clk_out
+// );
+// parameter M_N = 8'd87; 
+// parameter c89 = 8'd24;  // 8/9时钟切换点
+// parameter div_e = 5'd8; //偶数周期
+// parameter div_o = 5'd9; //奇数周期
+
+// reg             clk_out_reg;// 输出时钟
+// reg [6:0]       cnt;        // 87周期计数器
+
+// always @(posedge clk_in,negedge rst) begin
+//     if(!rst) begin
+//         cnt <= 1'b0;
+//     end
+//     else begin
+//         cnt <= cnt==86 ? 0 : cnt + 1'b1;
+//     end
+// end
+
+// always @(*) begin
+//     if (!rst) begin
+//         clk_out_reg <= 1'b0;
+//     end
+//     else begin   //8周期
+//         case (cnt)
+//             4*1-3:      clk_out_reg <= 1'b1;
+//             4*2-3:      clk_out_reg <= 1'b0;
+//             4*3-3:      clk_out_reg <= 1'b1;
+//             4*4-3:      clk_out_reg <= 1'b0;
+//             4*5-3:      clk_out_reg <= 1'b1;
+//             4*6-3:      clk_out_reg <= 1'b0;
+//             4*7-3:      clk_out_reg <= 1'b1;
+//             4*8-3:      clk_out_reg <= 1'b0;
+//             4*8-3+5*1:  clk_out_reg <= 1'b1;//34
+//             4*9-3+5*1:  clk_out_reg <= 1'b0;//39
+//             4*9-3+5*2:  clk_out_reg <= 1'b1;
+//             4*10-3+5*2: clk_out_reg <= 1'b0;
+//             4*10-3+5*3: clk_out_reg <= 1'b1;
+//             4*11-3+5*3: clk_out_reg <= 1'b0;
+//             4*11-3+5*4: clk_out_reg <= 1'b1;
+//             4*12-3+5*4: clk_out_reg <= 1'b0;
+//             4*12-3+5*5: clk_out_reg <= 1'b1;
+//             4*13-3+5*5: clk_out_reg <= 1'b0;
+//             4*13-3+5*6: clk_out_reg <= 1'b1;
+//             4*14-3+5*6: clk_out_reg <= 1'b0;
+//             4*14-3+5*7: clk_out_reg <= 1'b1;//88
+//             default:    clk_out_reg <= clk_out_reg;
+//         endcase
+//     end
+// end
+
+// assign clk_out = clk_out_reg;
+
+// endmodule
+
+// // 以下代码简洁明了，思路清晰
+// `timescale 1ns/1ns
+
+// module div_M_N(
+// input  wire clk_in,
+// input  wire rst,
+// output reg clk_out
+// );
+// parameter M_N = 8'd87; 
+// parameter c89 = 8'd24; // 8/9时钟切换点
+// parameter div_e = 5'd8; //偶数周期
+// parameter div_o = 5'd9; //奇数周期
+// //*************code***********//
+//     reg [6:0] cnt_r;
+//     reg [3:0] cnt_sub_r;
+
+
+// //*************code***********//
+//     always @(posedge clk_in or negedge rst) begin
+//         if (!rst) begin
+//             cnt_r <= 'd0;
+//             cnt_sub_r <= 'd0;
+//             clk_out <= 'd0;
+//         end
+//         else begin
+//             cnt_r <= cnt_r == M_N - 'd1 ? 'd0 : cnt_r + 'd1;
+//             if (cnt_r < c89) begin
+//                 cnt_sub_r <= cnt_sub_r == div_e - 1'd1 ? 'd0: cnt_sub_r + 'd1;
+//                 clk_out <= cnt_sub_r < (div_e >> 1) ? 'd1 : 'd0;
+//             end
+//             else begin
+//                 cnt_sub_r <= cnt_sub_r == div_o - 1'd1 ? 'd0: cnt_sub_r + 'd1;
+//                 clk_out <= cnt_sub_r < (div_o >> 1) ? 'd1 : 'd0;
+//             end
+//         end
+//     end
+// endmodule
+
+
+// `timescale  1ns / 1ps
+
+// module tb_div_M_N;
+
+// // div_M_N Parameters
+// parameter PERIOD = 10   ;
+// parameter M_N    = 8'd87;
+// parameter c89    = 8'd24;
+// parameter div_e  = 5'd8 ;
+// parameter div_o  = 5'd9 ;
+
+// // div_M_N Inputs
+// reg   clk_in                               = 0 ;
+// reg   rst                                  = 0 ;
+
+// // div_M_N Outputs
+// wire  clk_out                              ;
+
+
+// initial
+// begin
+//     forever #(PERIOD/2)  clk_in=~clk_in;
+// end
+
+// initial
+// begin
+//     $dumpfile("HDL_bit_wave.vcd");
+//     $dumpvars;
+//     #(PERIOD*2) rst  <=  1;
+// end
+
+// div_M_N #(
+//     .M_N   ( M_N   ),
+//     .c89   ( c89   ),
+//     .div_e ( div_e ),
+//     .div_o ( div_o ))
+//  u_div_M_N (
+//     .clk_in                  ( clk_in    ),
+//     .rst                     ( rst       ),
+
+//     .clk_out                 ( clk_out   )
+// );
+
+// initial
+// begin
+//     #(PERIOD*93) ;
+//     $finish;
+// end
+
+// endmodule
+
+// VL42 无占空比要去的奇数分频
+// 题目描述：           
+// 请设计一个同时输出5分频的时钟分频器，本题对占空比没有要求
+// 注意rst为低电平复位
+// `timescale 1ns/1ns
+
+// module odd_div (    
+//     input     wire rst ,
+//     input     wire clk_in,
+//     output    wire clk_out5
+// );
+
+// reg [2:0] cnt;
+// reg clk_out5_reg;
+
+// always @(posedge clk_in,negedge rst) begin
+//     if(!rst) begin
+//         cnt <= 0;
+//     end
+//     else begin
+//         cnt <= cnt==4 ? 0 : cnt + 1;
+//     end
+// end
+
+// always @(posedge clk_in,negedge rst) begin
+//     if(!rst) begin
+//         clk_out5_reg <= 0;
+//     end
+//     else begin
+//         clk_out5_reg <= (cnt==0||cnt==1);
+//     end
+// end
+
+// assign clk_out5 = clk_out5_reg;
+
+// endmodule

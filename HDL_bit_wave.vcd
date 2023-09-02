@@ -1,5 +1,5 @@
 $date
-	Mon Aug 21 22:45:07 2023
+	Fri Sep 01 23:41:18 2023
 $end
 $version
 	Icarus Verilog
@@ -7,17 +7,18 @@ $end
 $timescale
 	1ps
 $end
-$scope module tb_odo_div_or $end
-$var wire 1 ! clk_out7 $end
+$scope module tb_rise_det $end
+$var wire 1 ! out_dat $end
 $var parameter 32 " PERIOD $end
-$var reg 1 # clk_in $end
-$var reg 1 $ rst $end
-$scope module u_odo_div_or $end
-$var wire 1 # clk_in $end
-$var wire 1 $ rst $end
-$var reg 1 ! clk_out7 $end
-$var reg 3 % cnt_d [2:0] $end
-$var reg 3 & cnt_r [2:0] $end
+$var reg 1 # clk $end
+$var reg 1 $ in_dat $end
+$var reg 1 % rst_n $end
+$scope module u_rise_det $end
+$var wire 1 # clk $end
+$var wire 1 $ in_dat $end
+$var wire 1 % rst_n $end
+$var reg 1 ! out_dat $end
+$var reg 2 & tmp [1:0] $end
 $upscope $end
 $upscope $end
 $enddefinitions $end
@@ -28,7 +29,7 @@ $end
 #0
 $dumpvars
 b0 &
-b0 %
+0%
 0$
 0#
 0!
@@ -40,149 +41,75 @@ $end
 #15000
 1#
 #20000
-1$
+1%
 0#
 #25000
-b1 &
 1#
 #30000
-b1 %
 0#
 #35000
-b10 &
+1$
 1#
 #40000
-b10 %
 0#
 #45000
-b11 &
+b1 &
 1#
 #50000
-b11 %
 0#
 #55000
-b100 &
+b11 &
+1!
 1#
 #60000
-1!
-b100 %
 0#
 #65000
-b101 &
+0!
+0$
 1#
 #70000
-b101 %
 0#
 #75000
-b110 &
+b10 &
 1#
 #80000
-b110 %
 0#
 #85000
-0!
 b0 &
 1#
 #90000
-b0 %
 0#
 #95000
-b1 &
+1$
 1#
 #100000
-b1 %
 0#
 #105000
-b10 &
+b1 &
 1#
 #110000
-b10 %
 0#
 #115000
 b11 &
+1!
 1#
 #120000
-b11 %
 0#
 #125000
-b100 &
+0!
+0$
 1#
 #130000
-1!
-b100 %
 0#
 #135000
-b101 &
+b10 &
 1#
 #140000
-b101 %
 0#
 #145000
-b110 &
+b0 &
 1#
 #150000
-b110 %
 0#
 #155000
-0!
-b0 &
 1#
-#160000
-b0 %
-0#
-#165000
-b1 &
-1#
-#170000
-b1 %
-0#
-#175000
-b10 &
-1#
-#180000
-b10 %
-0#
-#185000
-b11 &
-1#
-#190000
-b11 %
-0#
-#195000
-b100 &
-1#
-#200000
-1!
-b100 %
-0#
-#205000
-b101 &
-1#
-#210000
-b101 %
-0#
-#215000
-b110 &
-1#
-#220000
-b110 %
-0#
-#225000
-0!
-b0 &
-1#
-#230000
-b0 %
-0#
-#235000
-b1 &
-1#
-#240000
-b1 %
-0#
-#245000
-b10 &
-1#
-#250000
-b10 %
-0#
