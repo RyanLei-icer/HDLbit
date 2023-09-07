@@ -5453,3 +5453,342 @@
 // assign clk_out5 = clk_out5_reg;
 
 // endmodule
+
+// VL43 根据状态转移写状态机-三段式
+// 如图所示为两种状态机中的一种，请根据状态转移图写出代码，状态转移线上的0/0等表示的意思是过程中data/flag的值。
+// 要求：
+// 1、 必须使用对应类型的状态机
+// 2、 使用三段式描述方法，输出判断要求要用到对现态的判断
+// `timescale 1ns/1ns
+
+// module fsm1(
+// 	input wire clk  ,
+// 	input wire rst  ,
+// 	input wire data ,
+// 	output reg flag
+// );
+// //*************code***********//
+// reg [1:0] state,next_state;
+
+// always@(*)begin
+// 	case(state)
+// 		default:next_state = data ? state+1 : state;
+// 		// 1:next_state = data ? state+1 : state;
+// 		// 2:next_state = data ? state+1 : state;
+// 		// 3:next_state = data ? state+1 : state;
+// 	endcase
+// end
+
+// always@(posedge clk,negedge rst)begin
+// 	if(!rst)begin
+// 		state <= 0;
+// 	end
+// 	else begin
+// 		state <= next_state;
+// 	end
+// end
+
+// always@(posedge clk,negedge rst)begin
+// 	if(!rst)begin
+// 		flag <= 0;
+// 	end
+// 	else begin
+// 		flag <= (state==3)&&data;
+// 	end
+// end
+
+// //*************code***********//
+// endmodule
+
+// VL44 根据状态转移写状态机-二段式
+// 如图所示为两种状态机中的一种，请根据状态转移图写出代码，状态转移线上的0/0等表示的意思是过程中data/flag的值。
+// 要求：
+// 1、 必须使用对应类型的状态机
+// 2、 使用二段式描述方法
+// 注意rst为低电平复位
+// `timescale 1ns/1ns
+
+// module fsm2(
+// 	input wire clk  ,
+// 	input wire rst  ,
+// 	input wire data ,
+// 	output reg flag
+// );
+
+// //*************code***********//
+// reg [2:0] state,next_state;
+
+// always@(*)begin
+// 	case(state)
+// 		4:next_state = data ? 1 : 0;
+// 		default:next_state = data ? state+1 : state;
+// 	endcase
+// end
+
+// always@(posedge clk,negedge rst)begin
+// 	if(!rst)begin
+// 		state <= 0;
+// 		flag  <= 0;
+// 	end
+// 	else begin
+// 		state <= next_state;
+// 		flag  <= next_state==4;
+// 	end
+// end
+
+// //*************code***********//
+// endmodule
+
+
+// VL45 异步FIFO
+// 描述
+// 请根据题目中给出的双口RAM代码和接口描述，实现异步FIFO，要求FIFO位宽和深度参数化可配置。
+// 电路的接口如下图所示。
+// `timescale 1ns/1ns
+
+// /***************************************RAM*****************************************/
+// module dual_port_RAM #(parameter DEPTH = 16,
+// 					   parameter WIDTH = 8)(
+// 	 input wclk
+// 	,input wenc             //写使能
+// 	,input [$clog2(DEPTH)-1:0] waddr  //深度对2取对数，得到地址的位宽。
+// 	,input [WIDTH-1:0] wdata      	//数据写入
+// 	,input rclk
+// 	,input renc             //读使能
+// 	,input [$clog2(DEPTH)-1:0] raddr  //深度对2取对数，得到地址的位宽。
+// 	,output reg [WIDTH-1:0] rdata 		//数据输出
+// );
+
+// reg [WIDTH-1:0] RAM_MEM [0:DEPTH-1];
+
+// always @(posedge wclk) begin
+// 	if(wenc)
+// 		RAM_MEM[waddr] <= wdata;
+// end 
+
+// always @(posedge rclk) begin
+// 	if(renc)
+// 		rdata <= RAM_MEM[raddr];
+// end 
+
+// endmodule  
+
+// /***************************************AFIFO*****************************************/
+// `timescale 1ns / 1ps
+// module asyn_fifo#(
+// 	parameter	WIDTH = 8,
+// 	parameter 	DEPTH = 16
+// )(
+// 	input 					wclk	, 
+// 	input 					rclk	,   
+// 	input 					wrstn	,
+// 	input					rrstn	,
+// 	input 					winc	,
+// 	input 			 		rinc	,
+// 	input 		[WIDTH-1:0]	wdata	,
+
+// 	output wire				wfull	,
+// 	output wire				rempty	,
+// 	output wire [WIDTH-1:0]	rdata
+// );
+
+// parameter ADDR_WIDTH = $clog2(DEPTH);
+    
+// reg [ADDR_WIDTH:0] waddr;//写指针(binary)
+// reg [ADDR_WIDTH:0] raddr;//读指针(binary)
+
+// wire [ADDR_WIDTH:0] waddr_gray;//写指针(gray)
+// wire [ADDR_WIDTH:0] raddr_gray;//读指针(gray)
+
+// reg [ADDR_WIDTH:0] sync_r2w1,sync_r2w2; //读指针打两拍同步到写指针
+// reg [ADDR_WIDTH:0] sync_w2r1,sync_w2r2; //写指针打两拍同步到读指针
+
+// // reg [WIDTH-1:0] wdata_reg;//写数据寄存器
+// // reg [WIDTH-1:0] rdata_reg;//读数据寄存器
+
+// reg wfull_reg;
+// reg rempty_reg;
+
+// // ===============================================================================
+// //写控制器，产生写地址与full信号
+// //写指针，写时钟域，异步复位
+// always @(posedge wclk,negedge wrstn) begin
+//     if(!wrstn) begin
+//         waddr <= 0;
+//     end
+//     else begin
+//         waddr <= wfull ? waddr : (waddr==DEPTH ? 0 : waddr + winc);
+//     end
+// end
+// assign waddr_gray = (waddr >> 1) ^ waddr;   //二进制转格雷码
+
+// //wfull信号，需要根据读写指针进行判断，将读指针跨时钟域同步到写时钟域
+// always @(posedge wclk,negedge wrstn) begin
+//     if(!wrstn) begin
+//         sync_r2w1 <= 0;
+//         sync_r2w2 <= 0;
+//     end
+//     else begin
+//         sync_r2w1 <= raddr_gray;
+//         sync_r2w2 <= sync_r2w1;//打两拍导致full有2clk延时
+//     end
+// end
+// always @(posedge wclk,negedge wrstn) begin
+//     if(!wrstn)
+//         wfull_reg <= 0;
+//     else
+//         wfull_reg <= (  (sync_r2w2[ADDR_WIDTH-2:0]==waddr_gray[ADDR_WIDTH-2:0])&&//高两位相反，其他位相同
+//                         (sync_r2w2[ADDR_WIDTH-:2]==~waddr_gray[ADDR_WIDTH-:2]));//等价于[ADDR_WIDTH:ADDR_WIDTH-1]
+// end
+
+// // ===============================================================================
+// //读控制器，产生读地址与empty信号
+// //读指针，读时钟域，异步复位
+// always @(posedge rclk,negedge rrstn) begin
+//     if(!rrstn) begin
+//         raddr <= 0;
+//     end
+//     else begin
+//         raddr <= rempty ? raddr : (raddr==DEPTH ? 0 : raddr + rinc);
+//     end
+// end
+// assign raddr_gray = (raddr >> 1) ^ raddr;   //二进制转格雷码
+
+// //rempty信号，需要根据读写指针进行判断，将写指针跨时钟域同步到读时钟域
+// always @(posedge rclk,negedge rrstn) begin
+//     if(!rrstn) begin
+//         sync_w2r1 <= 0;
+//         sync_w2r2 <= 0;
+//     end
+//     else begin
+//         sync_w2r1 <= waddr_gray;
+//         sync_w2r2 <= sync_w2r1;//打两拍导致rempty有2clk延时
+//     end
+// end
+// always @(posedge rclk,negedge rrstn) begin
+//     if(!rrstn)
+//         rempty_reg <= 0;
+//     else
+//         rempty_reg <= (sync_w2r2==raddr_gray);//完全相等代表空信号
+// end
+// // ===============================================================================
+
+// assign wfull = wfull_reg;
+// assign rempty = rempty_reg;
+
+
+// dual_port_RAM #(
+//     .DEPTH(DEPTH),
+//     .WIDTH(WIDTH)
+//     ) 
+// RAM_1(
+// 	.wclk(wclk),
+// 	.wenc(winc),
+// 	.waddr(waddr_gray[ADDR_WIDTH-1:0]),  //写地址根据读写控制
+// 	.wdata(wdata),
+
+// 	.rclk(rclk),
+// 	.renc(rinc),
+// 	.raddr(raddr_gray[ADDR_WIDTH-1:0]),  //读地址根据读写控制
+// 	.rdata(rdata)
+// );
+
+// endmodule
+
+
+// `timescale 1ns / 1ps
+// module tb_asyn_fifo;
+
+// // asyn_fifo Parameters
+// parameter PERIOD      = 10              ;
+// parameter WIDTH       = 8               ;
+// parameter DEPTH       = 16              ;
+
+// // asyn_fifo Inputs
+// reg   wclk                                 = 0 ;
+// reg   rclk                                 = 0 ;
+// reg   wrstn                                = 0 ;
+// reg   rrstn                                = 0 ;
+// reg   winc                                 = 0 ;
+// reg   rinc                                 = 0 ;
+// reg   [WIDTH-1:0]  wdata                   = 0 ;
+
+// // asyn_fifo Outputs
+// wire  wfull                                ;
+// wire  rempty                               ;
+// wire  [WIDTH-1:0]  rdata                   ;
+
+// initial
+// begin
+//     $dumpfile("HDL_bit_wave.vcd");
+//     $dumpvars;
+// end
+
+// initial
+// begin
+//     forever #(PERIOD/2)  wclk=~wclk;
+// end
+
+// initial
+// begin
+//     forever #(PERIOD/2)  rclk=~rclk;
+// end
+
+// initial
+// begin
+//     #(PERIOD*2) wrstn  =  1;rrstn  =  1;
+
+// end
+
+// asyn_fifo #(
+//     .WIDTH      ( WIDTH      ),
+//     .DEPTH      ( DEPTH      )
+//     )
+//  u_asyn_fifo (
+//     .wclk                    ( wclk                ),
+//     .rclk                    ( rclk                ),
+//     .wrstn                   ( wrstn               ),
+//     .rrstn                   ( rrstn               ),
+//     .winc                    ( winc                ),
+//     .rinc                    ( rinc                ),
+//     .wdata                   ( wdata   [WIDTH-1:0] ),
+
+//     .wfull                   ( wfull               ),
+//     .rempty                  ( rempty              ),
+//     .rdata                   ( rdata   [WIDTH-1:0] )
+// );
+
+// integer i;
+
+// initial
+// begin
+//     #(PERIOD*4) winc <= 1;
+//     #(PERIOD)   rinc <= 1;
+//     for (i=0;i<2^DEPTH;i=i+1)
+//     begin: gen_wr
+//         #(PERIOD)   wdata  <= i;
+//     end
+//     winc <= 0;
+//     #(PERIOD*24) ;
+//     $finish;
+// end
+
+// endmodule
+
+module circuit(input clk, rst_n, en, b, output reg a);
+always @(posedge clk)
+    if(!rst_n)
+        a <= 1'b0;
+    else if(en)
+        a <= ~a;
+always @(posedge clk or negedge rst_n)
+    if(!rst_n)
+        a <= 1'b0;
+    else if(en)
+        a <= ~a;
+always @(rst_n or en or b)
+    if(!rst_n)
+        a <= 1'b0;
+    else if(en)
+        a <= b;
+endmodule
