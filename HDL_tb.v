@@ -536,3 +536,149 @@
 
 // endmodule
 
+// `timescale 1ns / 1ps
+// `include "verilog_HDLbits.v"
+// //****************************************VSCODE PLUG-IN**********************************//
+// //----------------------------------------------------------------------------------------
+// // IDE :                   VSCODE plug-in 
+// // VSCODE plug-in version: Verilog-Hdl-Format-2.7.20240716
+// // VSCODE plug-in author : Jiang Percy
+// //----------------------------------------------------------------------------------------
+// //****************************************Copyright (c)***********************************//
+// // Copyright(C)            Please Write Company name
+// // All rights reserved     
+// // File name:              pulse_detect_tb.v
+// // Last modified Date:     2024/07/23 17:05:55
+// // Last Version:           V1.0
+// // Descriptions:           
+// //----------------------------------------------------------------------------------------
+// // Created by:             Please Write You Name 
+// // Created date:           2024/07/23 17:05:55
+// // Version:                V1.0
+// // Descriptions:           
+// //                         
+// //----------------------------------------------------------------------------------------
+// //****************************************************************************************//
+
+// module    pulse_detect_tb();
+//     reg                                        clka                       ;
+//     reg                                        clkb                       ;
+//     reg                                        rst_n                      ;
+//     reg                                        sig_a                      ;
+//     wire                                       sig_b                      ;
+
+
+
+//     initial
+//         begin
+//             #2                                             
+//                     rst_n = 0   ;                          
+//                     clka  = 0   ;                          
+//                     clkb  = 0   ;   
+//             #10                                            
+//                     rst_n = 1   ;                          
+//         end                                                
+                                                           
+//     parameter   CLKa_FREQ = 100;//Mhz                       
+//     parameter   CLKb_FREQ = 40; //Mhz  
+//     always # ( 1000/CLKa_FREQ/2 ) clka = ~clka ;              
+//     always # ( 1000/CLKb_FREQ/2 ) clkb = ~clkb ; 
+                                                           
+// pulse_detect u_pulse_detect(
+//     .clka                               (clka                      ),
+//     .clkb                               (clkb                      ),
+//     .rst_n                              (rst_n                     ),
+//     .sig_a                              (sig_a                     ),
+//     .sig_b                              (sig_b                     )
+// );
+
+// initial
+// begin
+//     sig_a=0;#10;
+//     sig_a=1;#100;
+//     sig_a=0;#100;
+//     sig_a=1;#70;
+//     sig_a=0;#200;
+//     $finish;
+// end
+// initial begin
+//         $dumpfile ("HDL_bit_wave.vcd");
+//         $dumpvars;
+// end
+
+// endmodule                                                  
+`timescale 1ns / 1ps
+//****************************************VSCODE PLUG-IN**********************************//
+//----------------------------------------------------------------------------------------
+// IDE :                   VSCODE plug-in 
+// VSCODE plug-in version: Verilog-Hdl-Format-2.7.20240716
+// VSCODE plug-in author : Jiang Percy
+//----------------------------------------------------------------------------------------
+//****************************************Copyright (c)***********************************//
+// Copyright(C)            Please Write Company name
+// All rights reserved     
+// File name:              pul_sync_wrapper_tb.v
+// Last modified Date:     2024/07/23 17:37:00
+// Last Version:           V1.0
+// Descriptions:           
+//----------------------------------------------------------------------------------------
+// Created by:             Please Write You Name 
+// Created date:           2024/07/23 17:37:00
+// Version:                V1.0
+// Descriptions:           
+//                         
+//----------------------------------------------------------------------------------------
+//****************************************************************************************//
+`include "verilog_HDLbits.v"
+module    pul_sync_wrapper_tb();
+    reg                                        clk_src                    ;
+    reg                                        clk_des                    ;
+    reg                                        rst_b                      ;
+    reg                                        d_in                       ;
+    wire                                       d_sync_pos                 ;
+    wire                                       d_sync_neg                 ;
+
+
+
+    initial
+        begin
+            #2                                             
+                    rst_b = 0   ;                          
+                    clk_src = 0 ;
+                    clk_des = 0 ;                          
+            #10                                            
+                    rst_b = 1   ;                          
+        end                                                
+                                                           
+    parameter   CLKa_FREQ = 100;//Mhz                       
+    parameter   CLKb_FREQ = 80; //Mhz                     
+    always # ( 1000/CLKa_FREQ/2 ) clk_src = ~clk_src ;              
+    always # ( 1000/CLKb_FREQ/2 ) clk_des = ~clk_des ; 
+                                                           
+pul_sync_wrapper u_pul_sync_wrapper(
+    .clk_src                            (clk_src                   ),
+    .clk_des                            (clk_des                   ),
+    .rst_b                              (rst_b                     ),
+    .d_in                               (d_in                      ),
+    .d_sync_pos                         (d_sync_pos                ),
+    .d_sync_neg                         (d_sync_neg                )
+);
+
+initial
+    begin
+        d_in = 0;
+        #40;
+        d_in = 1;
+        #10;
+        d_in = 0;
+        #500;
+        $finish;
+    end
+initial begin
+        $dumpfile ("HDL_bit_wave.vcd");
+        $dumpvars;
+end
+
+
+
+endmodule                                                  

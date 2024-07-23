@@ -5775,20 +5775,121 @@
 
 // endmodule
 
-module circuit(input clk, rst_n, en, b, output reg a);
-always @(posedge clk)
-    if(!rst_n)
-        a <= 1'b0;
-    else if(en)
-        a <= ~a;
-always @(posedge clk or negedge rst_n)
-    if(!rst_n)
-        a <= 1'b0;
-    else if(en)
-        a <= ~a;
-always @(rst_n or en or b)
-    if(!rst_n)
-        a <= 1'b0;
-    else if(en)
-        a <= b;
+
+// // VL69脉冲同步器(快到慢)
+// `timescale 1ns/1ps
+
+// module pulse_detect(
+// 	input 				clka	, 
+// 	input 				clkb	,   
+// 	input 				rst_n	,
+// 	input				sig_a	,
+
+// 	output  		 	sig_b
+// );
+// reg		Q_sig_a;
+// always @(posedge clka or negedge rst_n) begin
+// 	if(~rst_n) begin
+// 		Q_sig_a <= 'd0;
+// 	end 
+// 	else if(sig_a)begin
+// 		Q_sig_a <= ~Q_sig_a;
+// 	end
+// 	else if(~sig_a)begin
+// 		Q_sig_a <= Q_sig_a;
+// 	end
+// end
+// reg 	Q_buff0;
+// reg 	Q_buff1;
+// always @(posedge clkb or negedge rst_n) begin 
+// 	if(~rst_n) begin
+// 		Q_buff0 <= 'd0;
+// 		Q_buff1 <= 'd0;
+// 	end 
+// 	else begin
+// 		Q_buff0 <= Q_sig_a;
+// 		Q_buff1 <= Q_buff0;
+// 	end
+// end
+// reg		Q_slow;
+// always @(posedge clkb or negedge rst_n) begin
+// 	if(~rst_n) begin
+// 		Q_slow <= 'd0;
+// 	end 
+// 	else begin
+// 		Q_slow <= Q_buff1;
+// 	end
+// end
+
+// assign sig_b = Q_buff1 ^ Q_slow;
+
+// endmodule
+
+// 芯驰脉冲同步器
+`timescale 1ps/1ps
+module pul_sync_wrapper (
+    input  wire  clk_src,
+    input  wire  clk_des,
+    input  wire  rst_b,
+    input  wire  d_in,
+
+    output wire  d_sync_pos,
+    output wire  d_sync_neg
+);
+
+reg [1:0]   d_in_clk_cross_des;
+reg [1:0]   d_in_clk_cross_src;
+
+reg         d_in_lev;
+reg         d_des_sync_dly;
+wire        d_src_sync;
+
+always @(posedge clk_src or negedge rst_b) begin
+        if(~rst_b)begin
+            d_in_lev <= 1'b0;
+        end
+        else begin
+        if (d_in)
+            d_in_lev <= 1'b1;
+        else if (d_src_sync)
+            d_in_lev <= 1'b0;
+        else;
+    end
+end
+
+// always在clk_des打两拍
+always@(posedge clk_des or negedge rst_b) begin 
+    if(~rst_b) begin
+        d_in_clk_cross_des<={2{1'b0}};
+    end
+    else begin
+        d_in_clk_cross_des<={d_in_clk_cross_des[0],d_in_lev};
+    end
+end
+assign d_des_sync = d_in_clk_cross_des[1];//d_in_lev在目标时钟域打两拍后为d_des_sync
+
+always @(posedge clk_des or negedge rst_b) begin
+    if (~rst_b) begin
+        d_des_sync_dly<=1'b0;
+    end
+    else begin
+        d_des_sync_dly <= d_des_sync;
+    end
+end
+
+// always在clk_src打两拍
+always@(posedge clk_src or negedge rst_b) begin 
+    if(~rst_b) begin
+        d_in_clk_cross_src<={2{1'b0}};
+    end
+    else begin
+        d_in_clk_cross_src<={d_in_clk_cross_src[0],d_des_sync_dly};
+    end
+end
+assign d_src_sync = d_in_clk_cross_src[1];//d_des_sync_dly在源时钟域打两拍后为d_src_sync
+    
+
+assign d_sync_pos = d_src_sync & ~d_des_sync_dly;
+assign d_sync_neg = ~d_src_sync & d_des_sync_dly;
 endmodule
+
