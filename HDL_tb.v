@@ -651,7 +651,7 @@ module    pul_sync_wrapper_tb();
         end                                                
                                                            
     parameter   CLKa_FREQ = 100;//Mhz                       
-    parameter   CLKb_FREQ = 80; //Mhz                     
+    parameter   CLKb_FREQ = 20; //Mhz                     
     always # ( 1000/CLKa_FREQ/2 ) clk_src = ~clk_src ;              
     always # ( 1000/CLKb_FREQ/2 ) clk_des = ~clk_des ; 
                                                            
@@ -666,11 +666,11 @@ pul_sync_wrapper u_pul_sync_wrapper(
 
 initial
     begin
-        d_in = 0;
-        #40;
-        d_in = 1;
+        d_in <= 0;
+        #35;
+        d_in <= 1;
         #10;
-        d_in = 0;
+        d_in <= 0;
         #500;
         $finish;
     end
