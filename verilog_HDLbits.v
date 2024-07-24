@@ -5889,7 +5889,7 @@ end
 assign d_src_sync = d_in_clk_cross_src[1];//d_des_sync_dly在源时钟域打两拍后为d_src_sync
     
 
-assign d_sync_pos = d_src_sync & ~d_des_sync_dly;
-assign d_sync_neg = ~d_src_sync & d_des_sync_dly;
+assign d_sync_pos = d_des_sync && ~d_des_sync_dly;
+assign d_sync_neg = ~d_des_sync && d_des_sync_dly;
 endmodule
 
